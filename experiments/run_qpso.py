@@ -3,7 +3,9 @@
 experiments/run_qpso.py – End-to-end QPSO experiment for Q-Route.
 
 Runs a small Multi-Vehicle VRP on a synthetic graph using the QPSO
-optimizer and prints a detailed report of the best solution found.
+optimizer (with Milestone 5 repair + 2-opt pipeline) and prints a
+detailed report of the best solution found, including before/after
+fitness at each stage of the pipeline.
 
 Usage (from the repo root)
 --------------------------
@@ -17,7 +19,7 @@ All options
     --customers  INT    number of customers          (default 6)
     --nodes      INT    graph nodes                  (default 20)
     --particles  INT    QPSO swarm size              (default 20)
-    --iterations INT    max QPSO iterations          (default 100)
+    --iterations INT    max QPSO iterations          (default no limit)
     --time       FLOAT  wall-clock budget in seconds (default no limit)
     --seed       INT    random seed                  (default 42)
     --wT         FLOAT  travel-time weight           (default 1.0)
@@ -68,8 +70,6 @@ def _parse_args() -> argparse.Namespace:
 # Helpers
 # ─────────────────────────────────────────────────────────────────────────────
 
-# -----------------------------------------------------------------------------
-
 def _separator(char: str = "-", width: int = 60) -> str:
     return char * width
 
@@ -97,6 +97,15 @@ def _convergence_summary(history: dict[int, float]) -> None:
         print(f"  {it:>10}  {history[it]:>16.4f}")
 
 
+def _fmt(value: float | None) -> str:
+    """Format an optional fitness value for display."""
+    if value is None:
+        return "n/a"
+    if value == float("inf"):
+        return "inf"
+    return f"{value:.4f}"
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Main
 # ─────────────────────────────────────────────────────────────────────────────
@@ -105,7 +114,7 @@ def main() -> None:
     args = _parse_args()
 
     # ── 1. Build synthetic VRP problem ───────────────────────────────────
-    _print_section("Q-Route QPSO Experiment")
+    _print_section("Q-Route QPSO Experiment (Milestone 5)")
     print(f"  Generating synthetic VRP instance …")
 
     problem = generate_vrp_instance(
@@ -151,14 +160,33 @@ def main() -> None:
               f"demand={c.demand:.4f}")
 
     # ── 3. Run QPSO ──────────────────────────────────────────────────────
-    _print_section("Running QPSO …")
+    _print_section("Running QPSO (decode -> repair -> 2-opt) ...")
     t0 = time.monotonic()
     optimizer = QPSOOptimizer(problem, cfg)
     result = optimizer.run()
     elapsed = time.monotonic() - t0
     print(f"  Done in {elapsed:.2f} s")
 
-    # ── 4. Best solution ─────────────────────────────────────────────────
+    # ── 4. Pipeline fitness stages (best particle) ───────────────────────
+    _print_section("Pipeline Fitness Stages (globally best particle)")
+    print(f"  Stage 1 – raw decoded (before repair) : "
+          f"{_fmt(result.pre_repair_fitness)}")
+    print(f"  Stage 2 – after capacity repair        : "
+          f"{_fmt(result.post_repair_fitness)}")
+    print(f"  Stage 3 – after 2-opt refinement       : "
+          f"{_fmt(result.best_fitness)}")
+
+    # Show whether each stage made a measurable difference.
+    if (result.pre_repair_fitness is not None
+            and result.post_repair_fitness is not None
+            and result.pre_repair_fitness > 0):
+        repair_delta = result.pre_repair_fitness - result.post_repair_fitness
+        opt_delta = result.post_repair_fitness - result.best_fitness
+        print()
+        print(f"  Repair improved fitness by  : {repair_delta:+.4f}")
+        print(f"  2-opt improved fitness by   : {opt_delta:+.4f}")
+
+    # ── 5. Best solution ─────────────────────────────────────────────────
     sol = result.best_solution
     _print_section("Best Solution Found")
     print(f"  Best fitness   : {result.best_fitness:.4f}")
@@ -173,7 +201,7 @@ def main() -> None:
     else:
         print("  Violations     : none")
 
-    # ── 5. Per-vehicle routes ────────────────────────────────────────────
+    # ── 6. Per-vehicle routes ────────────────────────────────────────────
     print()
     print("  Per-vehicle routes:")
     cust_by_id = problem.customer_by_id
@@ -189,7 +217,7 @@ def main() -> None:
         print(f"      Seq length : {len(route.node_sequence)} nodes")
         print(f"      Sequence   : {route.node_sequence}")
 
-    # ── 6. Fitness breakdown ─────────────────────────────────────────────
+    # ── 7. Fitness breakdown ─────────────────────────────────────────────
     from app.vrp.objective import route_components
     _print_section("Fitness Breakdown")
     total_t = total_d = total_c = 0.0
@@ -209,7 +237,7 @@ def main() -> None:
           f"{w.penalty_per_violation})  : {penalty:.4f}")
     print(f"  Total fitness                 : {result.best_fitness:.4f}")
 
-    # ── 7. Convergence ───────────────────────────────────────────────────
+    # ── 8. Convergence ───────────────────────────────────────────────────
     _print_section("Convergence History")
     _convergence_summary(result.convergence_history)
 
@@ -226,7 +254,7 @@ def main() -> None:
     print(f"  Final best    : {result.best_fitness:.4f}")
     print()
     print(_separator("="))
-    print("  Milestone 4 experiment complete.")
+    print("  Milestone 5 experiment complete.")
     print(_separator("="))
 
 

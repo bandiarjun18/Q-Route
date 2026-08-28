@@ -383,17 +383,22 @@ class TestReproducibility:
         assert r1.best_fitness == pytest.approx(r2.best_fitness)
 
     def test_different_seeds_may_differ(
-        self, tiny_problem: VRPProblem
+        self, synthetic_problem: VRPProblem
     ) -> None:
         """
         Different seeds are permitted to produce different trajectories.
         We run several seeds and verify not all histories are identical
         (with high probability for a non-trivial problem).
+
+        Note: uses synthetic_problem (6 customers, 20 nodes) rather than
+        tiny_problem, because the M5 repair + 2-opt pipeline quickly
+        converges the tiny 3-node problem to its unique optimum regardless
+        of seed — making seed-diversity untestable on that fixture.
         """
         histories = []
         for seed in [1, 2, 3, 100, 200]:
             cfg = QPSOConfig(n_particles=5, max_iterations=10, seed=seed)
-            r = QPSOOptimizer(tiny_problem, cfg).run()
+            r = QPSOOptimizer(synthetic_problem, cfg).run()
             histories.append(list(r.convergence_history.values()))
 
         # At least two histories should differ somewhere
@@ -402,6 +407,7 @@ class TestReproducibility:
             "All seeds produced identical convergence histories, "
             "which is very unlikely for a stochastic optimizer."
         )
+
 
 
 # ═══════════════════════════════════════════════════════════════════════════

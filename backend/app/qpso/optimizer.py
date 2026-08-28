@@ -32,6 +32,15 @@ Fitness
 ``compute_fitness`` from ``app.vrp.objective`` is the SOLE fitness function.
 This module never redefines the formula.
 
+Evaluation pipeline (Milestone 5)
+----------------------------------
+Each particle evaluation now follows:
+
+    decode  →  capacity repair  →  2-opt refinement  →  fitness evaluation
+
+This pipeline is implemented inside ``_evaluate``.  The quantum update,
+pbest/gbest tracking, and convergence-history logic are unchanged.
+
 Stopping criteria (first to trigger)
 -------------------------------------
 1. ``max_iterations`` reached.
@@ -59,6 +68,8 @@ from app.vrp.models import VRPProblem, VRPSolution
 from app.vrp.objective import compute_fitness
 
 from .config import QPSOConfig
+from .local_search import two_opt
+from .repair import repair_capacity
 from .representation import decode, encode_random
 
 
@@ -73,15 +84,24 @@ class QPSOResult:
 
     Attributes
     ----------
-    best_solution      : VRPSolution  – best decoded solution found
-    best_fitness       : float        – objective value of best_solution
-    convergence_history: dict[int, float]
-                                      – maps iteration index → global-best
-                                        fitness at that iteration; useful for
-                                        plotting convergence curves
-    n_iterations_run   : int          – actual number of iterations completed
-    stopped_early      : bool         – True if a stopping criterion other than
-                                        max_iterations triggered the stop
+    best_solution       : VRPSolution  – best decoded+repaired+refined solution
+    best_fitness        : float        – objective value of best_solution
+                                         (after repair and 2-opt)
+    convergence_history : dict[int, float]
+                                       – maps iteration index → global-best
+                                         fitness at that iteration; useful for
+                                         plotting convergence curves
+    n_iterations_run    : int          – actual number of iterations completed
+    stopped_early       : bool         – True if a stopping criterion other than
+                                         max_iterations triggered the stop
+    pre_repair_fitness  : Optional[float]
+                                       – raw decoded fitness of the globally
+                                         best particle, before any repair or
+                                         local search (None if not available)
+    post_repair_fitness : Optional[float]
+                                       – fitness of the globally best particle
+                                         after capacity repair but before 2-opt
+                                         (None if not available)
     """
 
     best_solution: VRPSolution
@@ -89,6 +109,8 @@ class QPSOResult:
     convergence_history: dict[int, float] = field(default_factory=dict)
     n_iterations_run: int = 0
     stopped_early: bool = False
+    pre_repair_fitness: Optional[float] = None
+    post_repair_fitness: Optional[float] = None
 
 
 # ---------------------------------------------------------------------------
@@ -126,27 +148,58 @@ class QPSOOptimizer:
             raise ValueError("VRPProblem must have at least one vehicle.")
 
     # ------------------------------------------------------------------
-    # Fitness evaluation
+    # Fitness evaluation (full pipeline)
     # ------------------------------------------------------------------
 
-    def _evaluate(self, keys: np.ndarray) -> tuple[float, VRPSolution]:
+    def _evaluate(
+        self,
+        keys: np.ndarray,
+    ) -> tuple[float, VRPSolution, float, float]:
         """
-        Decode a particle and compute its fitness using the shared objective.
+        Decode → repair → 2-opt → fitness evaluation.
+
+        Parameters
+        ----------
+        keys : np.ndarray – particle position (priority-key vector)
 
         Returns
         -------
-        (fitness, solution) : (float, VRPSolution)
+        (final_fitness, refined_solution, pre_repair_fitness, post_repair_fitness)
+
+        ``final_fitness``      – fitness after repair and 2-opt
+        ``refined_solution``   – VRPSolution with is_feasible / violations /
+                                  objective_value populated
+        ``pre_repair_fitness`` – fitness of the raw decoded solution (before
+                                  any repair or local search)
+        ``post_repair_fitness``– fitness after capacity repair but before 2-opt
         """
-        solution = decode(keys, self.problem)
-        fitness = compute_fitness(solution, self.problem, self.config.fitness_weights)
+        weights = self.config.fitness_weights
 
-        # Populate feasibility info on the solution object
-        result = check_feasibility(solution, self.problem)
-        solution.is_feasible = result.is_feasible
-        solution.violations = result.violations
-        solution.objective_value = fitness
+        # 1. Decode raw solution from particle keys.
+        raw_sol = decode(keys, self.problem)
 
-        return fitness, solution
+        # 2. Record pre-repair fitness (for reporting / analysis).
+        pre_repair_fit = compute_fitness(raw_sol, self.problem, weights)
+
+        # 3. Capacity repair: move overflow customers to vehicles with slack.
+        repaired_sol = repair_capacity(raw_sol, self.problem)
+
+        # 4. Record post-repair fitness (for reporting / analysis).
+        post_repair_fit = compute_fitness(repaired_sol, self.problem, weights)
+
+        # 5. 2-opt local search on each feasible route.
+        refined_sol = two_opt(repaired_sol, self.problem, weights)
+
+        # 6. Compute final fitness using the shared objective function.
+        final_fit = compute_fitness(refined_sol, self.problem, weights)
+
+        # 7. Populate feasibility fields on the refined solution object.
+        feas_result = check_feasibility(refined_sol, self.problem)
+        refined_sol.is_feasible = feas_result.is_feasible
+        refined_sol.violations = feas_result.violations
+        refined_sol.objective_value = final_fit
+
+        return final_fit, refined_sol, pre_repair_fit, post_repair_fit
 
     # ------------------------------------------------------------------
     # Beta annealing
@@ -224,13 +277,16 @@ class QPSOOptimizer:
         Flow
         ----
         1. Initialise particle positions randomly.
-        2. Evaluate all particles; set personal-best = initial positions.
+        2. Evaluate all particles (decode → repair → 2-opt → fitness);
+           set personal-best = initial positions.
         3. Identify global-best.
         4. For each iteration:
            a. Record global-best fitness in convergence_history.
-           b. Apply quantum update to all particles.
-           c. Evaluate new positions; update personal-bests and global-best.
-           d. Check stopping criteria.
+           b. Check time budget.
+           c. Apply quantum update to all particles.
+           d. Evaluate new positions (full pipeline); update pbests/gbest.
+           e. Update convergence_history with post-update gbest.
+           f. Check stagnation stopping criterion.
         5. Return QPSOResult.
         """
         cfg = self.config
@@ -247,17 +303,21 @@ class QPSOOptimizer:
         pbest_pos = positions.copy()                  # personal-best positions
         pbest_fit = np.full(n_p, math.inf)            # personal-best fitnesses
 
+        # Store all initial evaluations so we can extract gbest without
+        # a redundant second call to _evaluate.
+        init_evals: list[tuple[float, VRPSolution, float, float]] = []
         for i in range(n_p):
-            fit, _ = self._evaluate(positions[i])
-            pbest_fit[i] = fit
+            ev = self._evaluate(positions[i])
+            pbest_fit[i] = ev[0]
+            init_evals.append(ev)
 
         # ── 3. Global best ───────────────────────────────────────────────
         gbest_idx = int(np.argmin(pbest_fit))
         gbest_pos = pbest_pos[gbest_idx].copy()
         gbest_fit = float(pbest_fit[gbest_idx])
-        gbest_solution = decode(gbest_pos, self.problem)
-        # Populate solution fields
-        _, gbest_solution = self._evaluate(gbest_pos)
+        gbest_solution = init_evals[gbest_idx][1]
+        gbest_pre_repair_fit: float = init_evals[gbest_idx][2]
+        gbest_post_repair_fit: float = init_evals[gbest_idx][3]
 
         convergence_history: dict[int, float] = {}
         stagnation_count = 0
@@ -285,7 +345,7 @@ class QPSOOptimizer:
 
             # d. Evaluate & update personal/global bests
             for i in range(n_p):
-                fit, sol = self._evaluate(positions[i])
+                fit, sol, pre_rf, post_rf = self._evaluate(positions[i])
                 if fit < pbest_fit[i]:
                     pbest_fit[i] = fit
                     pbest_pos[i] = positions[i].copy()
@@ -294,8 +354,10 @@ class QPSOOptimizer:
                     gbest_fit = fit
                     gbest_pos = positions[i].copy()
                     gbest_solution = sol
+                    gbest_pre_repair_fit = pre_rf
+                    gbest_post_repair_fit = post_rf
 
-            # e. Update convergence record to reflect post-update gbest_fit
+            # e. Update convergence record to reflect post-update gbest_fit.
             # This ensures history[t] always holds the best fitness *after*
             # processing iteration t (non-increasing guarantee holds).
             convergence_history[t] = gbest_fit
@@ -323,4 +385,6 @@ class QPSOOptimizer:
             convergence_history=convergence_history,
             n_iterations_run=actual_iterations,
             stopped_early=stopped_early,
+            pre_repair_fitness=gbest_pre_repair_fit,
+            post_repair_fitness=gbest_post_repair_fit,
         )
