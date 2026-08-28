@@ -1,0 +1,33 @@
+{
+  "pythonVersion": "3.11",
+  "venvPath": "backend",
+  "venv": ".venv",
+  "extraPaths": [
+    "backend"
+  ],
+  "executionEnvironments": [
+    {
+      "root": "backend",
+      "extraPaths": ["backend"],
+      "venvPath": "backend",
+      "venv": ".venv"
+    },
+    {
+      "root": "experiments",
+      "extraPaths": ["backend"],
+      "venvPath": "backend",
+      "venv": ".venv"
+    }
+  ],
+  "include": [
+    "backend",
+    "experiments"
+  ],
+  "exclude": [
+    "backend/.venv",
+    "**/__pycache__"
+  ],
+  "typeCheckingMode": "basic",
+  "reportMissingImports": true,
+  "reportMissingModuleSource": false
+}

@@ -128,9 +128,9 @@ def generate_synthetic_network(
     edge_list: list[dict] = []
     for (i, j) in all_undirected:
         dist = round(_euclidean(positions[i], positions[j]), 6)
-        speed_kmh = float(rng.uniform(30.0, 80.0))          # random speed
+        speed_kmh = rng.uniform(30.0, 80.0)                # random speed
         base_time = round((dist / speed_kmh) * 60.0, 6)     # minutes
-        congestion = round(float(rng.uniform(1.0, 2.5)), 4)
+        congestion = round(rng.uniform(1.0, 2.5), 4)
         status = "closed" if (i, j) in closed_pairs else "open"
 
         for u, v in [(i, j), (j, i)]:

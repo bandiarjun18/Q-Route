@@ -35,7 +35,7 @@ from .model import TransportGraph, WeightConfig
 # Internal helpers
 # ---------------------------------------------------------------------------
 
-def _open_subgraph(tg: TransportGraph) -> nx.DiGraph:
+def _open_subgraph(tg: TransportGraph) -> nx.Graph:
     """
     Return a read-only view of the graph that contains only open edges.
 
