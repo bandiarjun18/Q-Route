@@ -7,8 +7,13 @@ Reads settings from environment variables and optional .env file.
 from __future__ import annotations
 
 import os
+from pathlib import Path
 from typing import Optional
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+# Base backend directory containing .env
+_BACKEND_DIR = Path(__file__).resolve().parent.parent.parent
+_ENV_FILE = _BACKEND_DIR / ".env"
 
 
 class Settings(BaseSettings):
@@ -32,7 +37,7 @@ class Settings(BaseSettings):
     DB_POOL_RECYCLE: int = 1800
 
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=(_ENV_FILE, ".env"),
         env_file_encoding="utf-8",
         extra="ignore",
     )

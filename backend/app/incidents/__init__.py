@@ -31,10 +31,14 @@ No global mutable state is introduced.  Multiple independent
 """
 
 from .model import IncidentType, IncidentSeverity, Incident, IncidentLayer
+from .rerouting import detect_affected_routes, selective_reroute, RerouteResult
 
 __all__ = [
     "IncidentType",
     "IncidentSeverity",
     "Incident",
     "IncidentLayer",
+    "detect_affected_routes",
+    "selective_reroute",
+    "RerouteResult",
 ]

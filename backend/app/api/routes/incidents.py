@@ -144,17 +144,12 @@ def register_incident(
             detail=str(exc),
         ) from exc
 
-    # ── 4. Build / update IncidentLayer and apply to graph ───────────────
+    # ── 4. Build / update IncidentLayer ──────────────────────────────────
     if state.incident_layer is None:
         state.incident_layer = IncidentLayer()
     state.incident_layer.add_incident(incident)
-    state.incident_layer.apply(graph)
 
-    # ── 5. Identify affected routes in current RouteManager ───────────────
-    affected_routes_before = rm.affected_by_incident(state.incident_layer, mark=True)
-    affected_vehicle_ids = [ar.vehicle_id for ar in affected_routes_before]
-
-    # ── 6. Re-run QPSO with updated graph ────────────────────────────────
+    # ── 5. Build QPSO config for re-optimization ─────────────────────────
     cfg_params = state.last_qpso_config or {}
     weights = FitnessWeights(
         wT=cfg_params.get("w_time", 1.0),
@@ -168,50 +163,22 @@ def register_incident(
         seed=cfg_params.get("seed", 42),
         fitness_weights=weights,
     )
-    new_result = QPSOOptimizer(problem, cfg).run()
-    state.qpso_result = new_result  # update convergence history
 
-    # ── 7. Update RouteManager with re-optimized routes ──────────────────
-    for vr in new_result.best_solution.routes:
-        route_id = f"V{vr.vehicle_id}"
-        seq = vr.node_sequence
-        # Skip trivial routes
-        if len(seq) < 2 or (len(seq) == 2 and seq[0] == seq[1]):
-            continue
-        # Only update routes that were affected
-        if vr.vehicle_id not in affected_vehicle_ids:
-            continue
-        try:
-            validate_route(graph, seq)
-        except ValueError:
-            continue
+    # ── 6. Execute Selective Dynamic Rerouting ───────────────────────────
+    from app.incidents.rerouting import selective_reroute
+    reroute_res = selective_reroute(
+        graph=graph,
+        problem=problem,
+        rm=rm,
+        incident_layer=state.incident_layer,
+        qpso_config=cfg,
+    )
 
-        new_ar = ActiveRoute.from_vehicle_route(vr, route_id=route_id)
-        # Remove old entry if it exists, then re-register with updated path
-        try:
-            rm.remove(route_id)
-        except KeyError:
-            pass
-        try:
-            rm.register(new_ar, graph)
-        except (ValueError, KeyError):
-            continue
+    # ── 7. Build updated routes for response ─────────────────────────────
+    updated_routes_out = [_build_route_out(ar) for ar in reroute_res.updated_routes]
+    unaffected_count = len(reroute_res.preserved_routes)
 
-    # ── 8. Build response ────────────────────────────────────────────────
-    # Collect current state of affected routes from manager
-    updated_routes_out: list[RouteOut] = []
-    for vid in affected_vehicle_ids:
-        route_id = f"V{vid}"
-        try:
-            ar = rm.get(route_id)
-            updated_routes_out.append(_build_route_out(ar))
-        except KeyError:
-            pass
-
-    unaffected_count = len(rm.list_active()) - len(updated_routes_out)
-    unaffected_count = max(0, unaffected_count)
-
-    # ── 9. Persist to PostgreSQL ─────────────────────────────────────────
+    # ── 8. Persist to PostgreSQL ─────────────────────────────────────────
     try:
         net_id = state.network_db_id
         if not net_id:
@@ -232,17 +199,8 @@ def register_incident(
                 description=getattr(body, "description", ""),
                 is_closure=bool(incident.is_closure),
             )
-            # Save post-incident re-optimization run & updated routes
-            opt_model = save_optimization_run(
-                db=db,
-                network_id=net_id,
-                config=state.last_qpso_config or {},
-                result=new_result,
-                active_routes=rm.list_active(),
-            )
-            state.opt_run_db_id = opt_model.id
     except Exception as exc:
-        logger.warning("Failed to persist incident/re-optimization to PostgreSQL: %s", exc)
+        logger.warning("Failed to persist incident to PostgreSQL: %s", exc)
 
     return IncidentResponse(
         edge_u=u,
@@ -250,9 +208,8 @@ def register_incident(
         incident_type=inc_type.name,
         severity=severity.name,
         is_closure=incident.is_closure,
-        affected_vehicle_ids=affected_vehicle_ids,
-        n_affected=len(affected_vehicle_ids),
+        affected_vehicle_ids=reroute_res.affected_vehicle_ids,
+        n_affected=len(reroute_res.affected_vehicle_ids),
         updated_routes=updated_routes_out,
         unaffected_route_count=unaffected_count,
     )
-
