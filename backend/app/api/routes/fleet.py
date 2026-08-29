@@ -9,13 +9,18 @@ Requires POST /network to have been called first.
 
 from __future__ import annotations
 
+import logging
 from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.orm import Session
 
 from app.api.dependencies import require_graph
 from app.api.models import CustomerIn, FleetRequest, FleetResponse, VehicleIn
 from app.api.state import AppState
+from app.db.crud import get_active_network, save_fleet
+from app.db.session import get_db
 from app.vrp.models import Customer, Vehicle, VRPProblem
 
+logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/fleet", tags=["Fleet"])
 
 
@@ -34,6 +39,7 @@ router = APIRouter(prefix="/fleet", tags=["Fleet"])
 def configure_fleet(
     body: FleetRequest,
     state: AppState = Depends(require_graph),
+    db: Session = Depends(get_db),
 ) -> FleetResponse:
     """
     Build and store a VRPProblem from the provided fleet and customer data.
@@ -97,9 +103,23 @@ def configure_fleet(
     state.clear_from_fleet()
     state.problem = VRPProblem(graph=graph, vehicles=vehicles, customers=customers)
 
+    # ── Persist to PostgreSQL ────────────────────────────────────────────
+    try:
+        net_id = state.network_db_id
+        if not net_id:
+            active_net = get_active_network(db)
+            if active_net:
+                net_id = active_net.id
+                state.network_db_id = net_id
+        if net_id:
+            save_fleet(db, net_id, vehicles, customers)
+    except Exception as exc:
+        logger.warning("Failed to persist fleet to PostgreSQL: %s", exc)
+
     return FleetResponse(
         n_vehicles=len(vehicles),
         n_customers=len(customers),
         vehicles=list(body.vehicles),
         customers=list(body.customers),
     )
+

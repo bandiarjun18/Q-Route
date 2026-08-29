@@ -23,11 +23,15 @@ Requires POST /optimize to have been called first.
 
 from __future__ import annotations
 
+import logging
 from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.orm import Session
 
 from app.api.dependencies import require_optimization
 from app.api.models import IncidentRequest, IncidentResponse, RouteOut
 from app.api.state import AppState
+from app.db.crud import get_active_network, save_incident, save_optimization_run
+from app.db.session import get_db
 from app.graph.model import TransportGraph
 from app.incidents.model import Incident, IncidentLayer, IncidentSeverity, IncidentType
 from app.qpso.config import QPSOConfig
@@ -37,6 +41,7 @@ from app.routes.validation import validate_route
 from app.vrp.models import VRPProblem
 from app.vrp.objective import FitnessWeights
 
+logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/incidents", tags=["Incidents"])
 
 # Map API string → IncidentType enum
@@ -84,7 +89,9 @@ def _build_route_out(ar: ActiveRoute) -> RouteOut:
 def register_incident(
     body: IncidentRequest,
     state: AppState = Depends(require_optimization),
+    db: Session = Depends(get_db),
 ) -> IncidentResponse:
+
     """
     Register an incident, apply it to the graph, and re-optimize.
 
@@ -204,6 +211,39 @@ def register_incident(
     unaffected_count = len(rm.list_active()) - len(updated_routes_out)
     unaffected_count = max(0, unaffected_count)
 
+    # ── 9. Persist to PostgreSQL ─────────────────────────────────────────
+    try:
+        net_id = state.network_db_id
+        if not net_id:
+            active_net = get_active_network(db)
+            if active_net:
+                net_id = active_net.id
+                state.network_db_id = net_id
+        if net_id:
+            # Save incident record
+            save_incident(
+                db=db,
+                network_id=net_id,
+                optimization_run_id=state.opt_run_db_id,
+                edge_u=str(u),
+                edge_v=str(v),
+                incident_type=inc_type.name,
+                severity=severity.name,
+                description=getattr(body, "description", ""),
+                is_closure=bool(incident.is_closure),
+            )
+            # Save post-incident re-optimization run & updated routes
+            opt_model = save_optimization_run(
+                db=db,
+                network_id=net_id,
+                config=state.last_qpso_config or {},
+                result=new_result,
+                active_routes=rm.list_active(),
+            )
+            state.opt_run_db_id = opt_model.id
+    except Exception as exc:
+        logger.warning("Failed to persist incident/re-optimization to PostgreSQL: %s", exc)
+
     return IncidentResponse(
         edge_u=u,
         edge_v=v,
@@ -215,3 +255,4 @@ def register_incident(
         updated_routes=updated_routes_out,
         unaffected_route_count=unaffected_count,
     )
+

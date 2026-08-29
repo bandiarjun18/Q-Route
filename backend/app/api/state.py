@@ -73,8 +73,10 @@ class AppState:
 
     graph: Optional[TransportGraph] = None
     network_meta: Optional[dict[str, Any]] = None
+    network_db_id: Optional[str] = None
     problem: Optional[VRPProblem] = None
     qpso_result: Optional[QPSOResult] = None
+    opt_run_db_id: Optional[str] = None
     route_manager: Optional[RouteManager] = None
     incident_layer: Optional[IncidentLayer] = None
     last_qpso_config: Optional[dict[str, Any]] = None
@@ -86,8 +88,10 @@ class AppState:
     def clear_from_network(self) -> None:
         """Reset all fields that depend on graph state."""
         self.network_meta = None
+        self.network_db_id = None
         self.problem = None
         self.qpso_result = None
+        self.opt_run_db_id = None
         self.route_manager = None
         self.incident_layer = None
         self.last_qpso_config = None
@@ -96,6 +100,7 @@ class AppState:
         """Reset all fields that depend on fleet/problem state."""
         self.problem = None
         self.qpso_result = None
+        self.opt_run_db_id = None
         self.route_manager = None
         self.incident_layer = None
         self.last_qpso_config = None
@@ -103,6 +108,8 @@ class AppState:
     def clear_from_optimize(self) -> None:
         """Reset optimization and incident state."""
         self.qpso_result = None
+        self.opt_run_db_id = None
         self.route_manager = None
         self.incident_layer = None
         self.last_qpso_config = None
+

@@ -10,14 +10,19 @@ incidents, routes) to ensure consistency.
 
 from __future__ import annotations
 
+import logging
 from fastapi import APIRouter, Depends, status
+from sqlalchemy.orm import Session
 
 from app.api.dependencies import get_state
 from app.api.models import EdgeOut, NetworkRequest, NetworkResponse, NodeOut
 from app.api.state import AppState
+from app.db.crud import save_network
+from app.db.session import get_db
 from app.graph.generator import generate_synthetic_network
 from app.graph.model import TransportGraph
 
+logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/network", tags=["Network"])
 
 
@@ -35,6 +40,7 @@ router = APIRouter(prefix="/network", tags=["Network"])
 def create_network(
     body: NetworkRequest,
     state: AppState = Depends(get_state),
+    db: Session = Depends(get_db),
 ) -> NetworkResponse:
     """
     Generate and store a synthetic transport network.
@@ -75,6 +81,22 @@ def create_network(
         "n_intersections": n_intersections,
         "seed": body.seed,
     }
+
+    # ── 4. Persist to PostgreSQL ────────────────────────────────────────
+    try:
+        net_model = save_network(
+            db=db,
+            net_data=net_data,
+            seed=body.seed,
+            connect_radius_km=body.connect_radius_km,
+            grid_size_km=body.grid_size_km,
+            closed_fraction=body.closed_fraction,
+            name=f"Network-{body.seed}-{body.n_nodes}N",
+        )
+        state.network_db_id = net_model.id
+    except Exception as exc:
+        logger.warning("Failed to persist network to PostgreSQL: %s", exc)
+
 
     # ── 4. Build response ────────────────────────────────────────────────
     nodes_out = [

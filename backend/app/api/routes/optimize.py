@@ -18,11 +18,15 @@ Design notes
 
 from __future__ import annotations
 
+import logging
 from fastapi import APIRouter, Depends, status
+from sqlalchemy.orm import Session
 
 from app.api.dependencies import require_problem
 from app.api.models import OptimizeRequest, OptimizeResponse, RouteOut
 from app.api.state import AppState
+from app.db.crud import get_active_network, save_optimization_run
+from app.db.session import get_db
 from app.graph.model import TransportGraph
 from app.qpso.config import QPSOConfig
 from app.qpso.optimizer import QPSOOptimizer
@@ -32,6 +36,7 @@ from app.routes.validation import validate_route
 from app.vrp.models import VRPProblem, VRPSolution
 from app.vrp.objective import FitnessWeights
 
+logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/optimize", tags=["Optimize"])
 
 
@@ -86,6 +91,7 @@ def _build_route_manager(solution: VRPSolution, tg: TransportGraph) -> RouteMana
 def run_optimization(
     body: OptimizeRequest,
     state: AppState = Depends(require_problem),
+    db: Session = Depends(get_db),
 ) -> OptimizeResponse:
     """
     Execute the QPSO optimizer and register results in the RouteManager.
@@ -136,6 +142,27 @@ def run_optimization(
     # ── Build response ───────────────────────────────────────────────────
     active_routes = rm.list_active()
     routes_out = [_build_route_out(ar) for ar in active_routes]
+
+    # ── Persist to PostgreSQL ────────────────────────────────────────────
+    try:
+        net_id = state.network_db_id
+        if not net_id:
+            active_net = get_active_network(db)
+            if active_net:
+                net_id = active_net.id
+                state.network_db_id = net_id
+        if net_id:
+            opt_model = save_optimization_run(
+                db=db,
+                network_id=net_id,
+                config=state.last_qpso_config,
+                result=result,
+                active_routes=active_routes,
+            )
+            state.opt_run_db_id = opt_model.id
+    except Exception as exc:
+        logger.warning("Failed to persist optimization run to PostgreSQL: %s", exc)
+
 
     return OptimizeResponse(
         best_fitness=result.best_fitness,

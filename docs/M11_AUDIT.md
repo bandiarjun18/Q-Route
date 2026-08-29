@@ -177,3 +177,67 @@ The unified benchmark execution framework is implemented under [`experiments/ben
 | **O. Benchmark Visualizations** | Comparative convergence, boxplots, scaling curves | **Completed (Phase 4)** | 6 vector SVG figures in `results/figures/` |
 | **P. Incident Rerouting Evaluation** | Dynamic selective re-optimization vs full re-solve benchmark | **Pending Phase 5** | Incident benchmark next |
 
+---
+
+## 9. Database Setup & Architecture (Phase 2)
+
+### Implementation Summary:
+1. **Engine & Configuration**:
+   - Integrated `SQLAlchemy 2.0` with `psycopg[binary] 3.x` driver connecting to PostgreSQL 18.4 (`qroute` database).
+   - Configured [`app/core/config.py`](file:///c:/git/Q-Route/backend/app/core/config.py) using `pydantic-settings` to load `DATABASE_URL` from `.env` with fallback.
+   - Configured [`app/db/session.py`](file:///c:/git/Q-Route/backend/app/db/session.py) with connection pool recycling (`pool_pre_ping=True`) and `get_db()` dependency.
+2. **Schema & ORM Models ([`app/db/models.py`](file:///c:/git/Q-Route/backend/app/db/models.py))**:
+   - `networks`: Network generation params & metadata.
+   - `nodes`: Vertices with spatial coordinates ($x, y$) and node roles (`depot`, `customer`, `intersection`).
+   - `edges`: Directed links with distance, base travel time, congestion factor, and road status.
+   - `fleet_vehicles`: Vehicle capacity and home depot assignments.
+   - `customers`: Order demands and delivery locations.
+   - `optimization_runs`: QPSO run parameters, fitness scores, repair metrics, and convergence JSON.
+   - `routes`: Operational and historical vehicle routes (`visit_order`, `node_sequence`, metrics, ETA, status).
+   - `incidents`: Disruption events (`edge_u`, `edge_v`, `incident_type`, `severity`, closure flag).
+3. **Schema Migrations**:
+   - Initialized Alembic (`alembic.ini`, `alembic/env.py`, `alembic/versions/001_initial_schema.py`).
+   - Successfully executed `alembic upgrade head` to provision all 8 domain tables in PostgreSQL.
+4. **CRUD Data Access Layer ([`app/db/crud.py`](file:///c:/git/Q-Route/backend/app/db/crud.py))**:
+   - Data access helper functions for network, fleet, optimization runs, routes, and incidents.
+
+### Verification:
+- **PostgreSQL Connection**: Successfully connected to local `qroute` database on port 5432.
+- **Database Tests**: `4 passed in 2.08s` ([`backend/tests/test_db.py`](file:///c:/git/Q-Route/backend/tests/test_db.py)).
+- **Full Backend Regression Suite**: `382 passed in 37.87s` (0 regressions).
+- **Frontend Build**: Production bundle build passed in `9.13s` with 0 errors.
+- **Protected Areas Invariance**: `app/qpso/*`, `app/vrp/objective.py`, `app/vrp/feasibility.py`, and `frontend/*` remain untouched.
+
+---
+
+## 10. Database API Persistence & CRUD Integration (Phase 3)
+
+### Implementation Summary:
+1. **API Boundary Integration**:
+   - Injected database session dependency (`db: Session = Depends(get_db)`) across API endpoints:
+     - `POST /network`: Persists network parameters and bulk-inserts `nodes` and `edges` into PostgreSQL.
+     - `POST /fleet`: Validates nodes and persists `fleet_vehicles` and `customers` linked to the active network.
+     - `POST /optimize`: Executes in-memory QPSO and persists `optimization_runs` (with `convergence_history` JSON) and `routes` records.
+     - `POST /incidents`: Persists `incidents` record, updates edge statuses, and persists re-optimized `optimization_runs` and `routes`.
+     - `GET /routes/current`: Retrieves operational vehicle routes.
+     - `GET /analytics/convergence`: Returns iteration-by-iteration convergence trajectory.
+2. **AppState & Lifecycle**:
+   - Added `network_db_id` and `opt_run_db_id` to `AppState` to track active relational database foreign keys.
+   - Synchronized stage invalidation: `clear_from_network`, `clear_from_fleet`, and `clear_from_optimize`.
+3. **Resilience & Safe Error Handling**:
+   - Wrapped database persistence calls at the API boundary in exception guards with structured logging.
+   - If database write fails or is offline, the API remains resilient and serves in-memory optimization results without breaking the client contract.
+4. **CRUD Data Access API ([`app/db/crud.py`](file:///c:/git/Q-Route/backend/app/db/crud.py))**:
+   - `save_network`, `save_fleet`, `save_optimization_run`, `save_incident`
+   - `get_active_network`, `get_network_by_id`, `get_latest_optimization_run`, `get_routes_for_optimization`, `get_incidents_for_network`, `delete_network`.
+
+### Verification Results:
+- **API Persistence Test Suite**: `3 passed in 3.54s` ([`backend/tests/test_api_persistence.py`](file:///c:/git/Q-Route/backend/tests/test_api_persistence.py)).
+- **Database Model Test Suite**: `4 passed in 2.28s` ([`backend/tests/test_db.py`](file:///c:/git/Q-Route/backend/tests/test_db.py)).
+- **Full Backend Regression Suite**: `385 passed in 39.40s` with 0 failures across all 385 tests.
+- **Frontend Production Build**: `vite build` completed in `648ms` with 0 errors.
+- **Protected Areas Invariance**: `app/qpso/*`, `app/vrp/objective.py`, `app/vrp/feasibility.py`, and `frontend/*` remain 100% untouched.
+- **API Contract Invariance**: All Pydantic request/response models remain 100% backward compatible.
+
+
+
