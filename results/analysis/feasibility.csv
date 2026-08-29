@@ -1,0 +1,15 @@
+algorithm,instance_id,feasibility_rate,success_rate,n_success,n_infeasible,n_error,n_trials
+Classical_PSO,medium_seed_42,0.0,0.0,0,3,0,3
+Classical_PSO,small_seed_42,1.0,1.0,3,0,0,3
+Classical_PSO,small_seed_43,1.0,1.0,3,0,0,3
+Exact_Brute_Force,small_seed_42,1.0,1.0,3,0,0,3
+Exact_Brute_Force,small_seed_43,1.0,1.0,3,0,0,3
+Genetic_Algorithm,medium_seed_42,0.0,0.0,0,3,0,3
+Genetic_Algorithm,small_seed_42,1.0,1.0,3,0,0,3
+Genetic_Algorithm,small_seed_43,1.0,1.0,3,0,0,3
+QPSO,medium_seed_42,0.0,0.0,0,3,0,3
+QPSO,small_seed_42,1.0,1.0,3,0,0,3
+QPSO,small_seed_43,1.0,1.0,3,0,0,3
+Simulated_Annealing,medium_seed_42,0.0,0.0,0,3,0,3
+Simulated_Annealing,small_seed_42,1.0,1.0,3,0,0,3
+Simulated_Annealing,small_seed_43,1.0,1.0,3,0,0,3

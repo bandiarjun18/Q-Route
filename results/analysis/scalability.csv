@@ -1,0 +1,15 @@
+algorithm,instance_id,n_customers,mean_objective,mean_runtime_seconds,feasibility_rate
+Classical_PSO,medium_seed_42,15,,37.9334,0.0
+Classical_PSO,small_seed_42,6,80.1643,4.1325,1.0
+Classical_PSO,small_seed_43,6,69.4922,5.3387,1.0
+Exact_Brute_Force,small_seed_42,6,78.6381,70.8604,1.0
+Exact_Brute_Force,small_seed_43,6,69.4922,35.7235,1.0
+Genetic_Algorithm,medium_seed_42,15,,38.0677,0.0
+Genetic_Algorithm,small_seed_42,6,80.1643,3.5253,1.0
+Genetic_Algorithm,small_seed_43,6,69.4922,4.1708,1.0
+QPSO,medium_seed_42,15,,37.226,0.0
+QPSO,small_seed_42,6,78.6381,4.3745,1.0
+QPSO,small_seed_43,6,69.4922,10.9765,1.0
+Simulated_Annealing,medium_seed_42,15,,4.1962,0.0
+Simulated_Annealing,small_seed_42,6,87.5699,0.3347,1.0
+Simulated_Annealing,small_seed_43,6,69.4922,0.3441,1.0

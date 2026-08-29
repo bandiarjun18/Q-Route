@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 480" style="background-color: #0a0e1a; font-family: Inter, system-ui, sans-serif;">
+<rect width="800" height="480" fill="#0a0e1a" />
+<text x="80" y="32" fill="#f8fafc" font-size="16" font-weight="bold">Solution Feasibility Rate (%)</text>
+<text x="80" y="48" fill="#94a3b8" font-size="12">Percentage of generated solutions satisfying all 5 hard VRP constraints</text>
+<line x1="80" y1="420.0" x2="650" y2="420.0" stroke="#1e293b" stroke-dasharray="3,3" />
+<text x="70" y="424.0" fill="#94a3b8" font-size="11" text-anchor="end">0.0</text>
+<line x1="80" y1="330.0" x2="650" y2="330.0" stroke="#1e293b" stroke-dasharray="3,3" />
+<text x="70" y="334.0" fill="#94a3b8" font-size="11" text-anchor="end">28.7</text>
+<line x1="80" y1="240.0" x2="650" y2="240.0" stroke="#1e293b" stroke-dasharray="3,3" />
+<text x="70" y="244.0" fill="#94a3b8" font-size="11" text-anchor="end">57.5</text>
+<line x1="80" y1="150.0" x2="650" y2="150.0" stroke="#1e293b" stroke-dasharray="3,3" />
+<text x="70" y="154.0" fill="#94a3b8" font-size="11" text-anchor="end">86.2</text>
+<line x1="80" y1="60.0" x2="650" y2="60.0" stroke="#1e293b" stroke-dasharray="3,3" />
+<text x="70" y="64.0" fill="#94a3b8" font-size="11" text-anchor="end">115.0</text>
+<text x="157.8" y="440" fill="#f8fafc" font-size="11" font-weight="600" text-anchor="middle">medium_seed_42</text>
+<rect x="102.8" y="420.0" width="20.0" height="0.0" fill="#818cf8" rx="3" />
+<rect x="146.8" y="420.0" width="20.0" height="0.0" fill="#34d399" rx="3" />
+<rect x="168.8" y="420.0" width="20.0" height="0.0" fill="#38bdf8" rx="3" />
+<rect x="190.8" y="420.0" width="20.0" height="0.0" fill="#fbbf24" rx="3" />
+<text x="347.8" y="440" fill="#f8fafc" font-size="11" font-weight="600" text-anchor="middle">small_seed_42</text>
+<rect x="292.8" y="107.0" width="20.0" height="313.0" fill="#818cf8" rx="3" />
+<rect x="314.8" y="107.0" width="20.0" height="313.0" fill="#f43f5e" rx="3" />
+<rect x="336.8" y="107.0" width="20.0" height="313.0" fill="#34d399" rx="3" />
+<rect x="358.8" y="107.0" width="20.0" height="313.0" fill="#38bdf8" rx="3" />
+<rect x="380.8" y="107.0" width="20.0" height="313.0" fill="#fbbf24" rx="3" />
+<text x="537.8" y="440" fill="#f8fafc" font-size="11" font-weight="600" text-anchor="middle">small_seed_43</text>
+<rect x="482.8" y="107.0" width="20.0" height="313.0" fill="#818cf8" rx="3" />
+<rect x="504.8" y="107.0" width="20.0" height="313.0" fill="#f43f5e" rx="3" />
+<rect x="526.8" y="107.0" width="20.0" height="313.0" fill="#34d399" rx="3" />
+<rect x="548.8" y="107.0" width="20.0" height="313.0" fill="#38bdf8" rx="3" />
+<rect x="570.8" y="107.0" width="20.0" height="313.0" fill="#fbbf24" rx="3" />
+<rect x="665" y="70" width="12" height="12" fill="#818cf8" rx="2" />
+<text x="682" y="80" fill="#f8fafc" font-size="11">Classical_PSO</text>
+<rect x="665" y="92" width="12" height="12" fill="#f43f5e" rx="2" />
+<text x="682" y="102" fill="#f8fafc" font-size="11">Exact_Brute_Force</text>
+<rect x="665" y="114" width="12" height="12" fill="#34d399" rx="2" />
+<text x="682" y="124" fill="#f8fafc" font-size="11">Genetic_Algorithm</text>
+<rect x="665" y="136" width="12" height="12" fill="#38bdf8" rx="2" />
+<text x="682" y="146" fill="#f8fafc" font-size="11">QPSO</text>
+<rect x="665" y="158" width="12" height="12" fill="#fbbf24" rx="2" />
+<text x="682" y="168" fill="#f8fafc" font-size="11">Simulated_Annealing</text>
+</svg>

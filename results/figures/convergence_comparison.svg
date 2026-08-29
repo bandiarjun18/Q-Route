@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" style="background-color: #0a0e1a; font-family: Inter, system-ui, sans-serif;">
+<rect width="800" height="500" fill="#0a0e1a" />
+<text x="80" y="35" fill="#f8fafc" font-size="16" font-weight="bold">QPSO vs Metaheuristics: Convergence Trajectory</text>
+<text x="80" y="52" fill="#94a3b8" font-size="12">Benchmark Instance: small_seed_42 · Fitness Objective Minimization</text>
+<line x1="80" y1="440.0" x2="640" y2="440.0" stroke="#1e293b" stroke-dasharray="3,3" stroke-width="1" />
+<text x="70" y="444.0" fill="#94a3b8" font-size="11" text-anchor="end">74.7</text>
+<line x1="80" y1="364.0" x2="640" y2="364.0" stroke="#1e293b" stroke-dasharray="3,3" stroke-width="1" />
+<text x="70" y="368.0" fill="#94a3b8" font-size="11" text-anchor="end">85.6</text>
+<line x1="80" y1="288.0" x2="640" y2="288.0" stroke="#1e293b" stroke-dasharray="3,3" stroke-width="1" />
+<text x="70" y="292.0" fill="#94a3b8" font-size="11" text-anchor="end">96.5</text>
+<line x1="80" y1="212.00000000000009" x2="640" y2="212.00000000000009" stroke="#1e293b" stroke-dasharray="3,3" stroke-width="1" />
+<text x="70" y="216.00000000000009" fill="#94a3b8" font-size="11" text-anchor="end">107.4</text>
+<line x1="80" y1="135.99999999999994" x2="640" y2="135.99999999999994" stroke="#1e293b" stroke-dasharray="3,3" stroke-width="1" />
+<text x="70" y="139.99999999999994" fill="#94a3b8" font-size="11" text-anchor="end">118.3</text>
+<line x1="80" y1="60.0" x2="640" y2="60.0" stroke="#1e293b" stroke-dasharray="3,3" stroke-width="1" />
+<text x="70" y="64.0" fill="#94a3b8" font-size="11" text-anchor="end">129.2</text>
+<line x1="80.0" y1="60" x2="80.0" y2="440" stroke="#1e293b" stroke-dasharray="3,3" stroke-width="1" />
+<text x="80.0" y="460" fill="#94a3b8" font-size="11" text-anchor="middle">Iter 0</text>
+<line x1="192.0" y1="60" x2="192.0" y2="440" stroke="#1e293b" stroke-dasharray="3,3" stroke-width="1" />
+<text x="192.0" y="460" fill="#94a3b8" font-size="11" text-anchor="middle">Iter 9216</text>
+<line x1="304.0" y1="60" x2="304.0" y2="440" stroke="#1e293b" stroke-dasharray="3,3" stroke-width="1" />
+<text x="304.0" y="460" fill="#94a3b8" font-size="11" text-anchor="middle">Iter 18432</text>
+<line x1="416.0" y1="60" x2="416.0" y2="440" stroke="#1e293b" stroke-dasharray="3,3" stroke-width="1" />
+<text x="416.0" y="460" fill="#94a3b8" font-size="11" text-anchor="middle">Iter 27648</text>
+<line x1="528.0" y1="60" x2="528.0" y2="440" stroke="#1e293b" stroke-dasharray="3,3" stroke-width="1" />
+<text x="528.0" y="460" fill="#94a3b8" font-size="11" text-anchor="middle">Iter 36864</text>
+<line x1="640.0" y1="60" x2="640.0" y2="440" stroke="#1e293b" stroke-dasharray="3,3" stroke-width="1" />
+<text x="640.0" y="460" fill="#94a3b8" font-size="11" text-anchor="middle">Iter 46080</text>
+<path d="M80.0,380.7 L80.0,380.7 L80.0,380.7 L80.0,380.7 L80.0,380.7 L80.1,380.7 L80.1,412.6 L80.1,412.6 L80.1,412.6 L80.1,412.6 L80.1,412.6 L80.1,412.6 L80.1,412.6 L80.2,412.6 L80.2,412.6 L80.2,412.6 L80.2,412.6 L80.2,412.6 L80.2,412.6 L80.2,412.6" fill="none" stroke="#38bdf8" stroke-width="2.5" stroke-linecap="round" />
+<line x1="660" y1="70" x2="685" y2="70" stroke="#38bdf8" stroke-width="3" />
+<text x="692" y="74" fill="#f8fafc" font-size="11">QPSO</text>
+<path d="M80.0,380.7 L80.0,380.7 L80.0,380.7 L80.0,380.7 L80.0,380.7 L80.1,380.7 L80.1,380.7 L80.1,380.7 L80.1,380.7 L80.1,380.7 L80.1,380.7 L80.1,380.7 L80.1,380.7 L80.2,380.7 L80.2,380.7 L80.2,380.7 L80.2,380.7 L80.2,380.7 L80.2,380.7 L80.2,380.7 L80.2,380.7" fill="none" stroke="#818cf8" stroke-width="2.5" stroke-linecap="round" />
+<line x1="660" y1="94" x2="685" y2="94" stroke="#818cf8" stroke-width="3" />
+<text x="692" y="98" fill="#f8fafc" font-size="11">Classical_PSO</text>
+<path d="M80.0,380.7 L80.0,380.7 L80.0,380.7 L80.0,380.7 L80.0,380.7 L80.1,380.7 L80.1,380.7 L80.1,380.7 L80.1,380.7 L80.1,380.7 L80.1,380.7 L80.1,380.7 L80.1,380.7 L80.2,380.7 L80.2,380.7 L80.2,380.7 L80.2,380.7 L80.2,380.7 L80.2,380.7 L80.2,380.7 L80.2,380.7" fill="none" stroke="#34d399" stroke-width="2.5" stroke-linecap="round" />
+<line x1="660" y1="118" x2="685" y2="118" stroke="#34d399" stroke-width="3" />
+<text x="692" y="122" fill="#f8fafc" font-size="11">Genetic_Algorithm</text>
+<path d="M80.0,144.0 L80.0,144.0 L80.0,380.7 L80.0,380.7 L80.0,380.7 L80.1,380.7 L80.1,380.7 L80.1,380.7 L80.1,380.7 L80.1,380.7 L80.1,380.7 L80.1,380.7 L80.1,380.7 L80.2,380.7 L80.2,380.7 L80.2,380.7 L80.2,380.7 L80.2,380.7 L80.2,380.7 L80.2,380.7 L80.2,380.7" fill="none" stroke="#fbbf24" stroke-width="2.5" stroke-linecap="round" />
+<line x1="660" y1="142" x2="685" y2="142" stroke="#fbbf24" stroke-width="3" />
+<text x="692" y="146" fill="#f8fafc" font-size="11">Simulated_Annealing</text>
+<path d="M80.0,102.9 L80.1,104.4 L80.1,135.6 L80.1,167.3 L80.2,257.1 L80.9,328.4 L81.7,373.0 L82.5,412.6 L640.0,412.6" fill="none" stroke="#f43f5e" stroke-width="2.5" stroke-linecap="round" />
+<line x1="660" y1="166" x2="685" y2="166" stroke="#f43f5e" stroke-width="3" />
+<text x="692" y="170" fill="#f8fafc" font-size="11">Exact_Brute_Force</text>
+</svg>

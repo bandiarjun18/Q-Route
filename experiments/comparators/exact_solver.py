@@ -94,6 +94,9 @@ class ExactSolver:
                         capacity_ok = False
                         break
 
+                if not capacity_ok:
+                    continue
+
                 # Build candidate routes
                 routes: list[VehicleRoute] = []
                 for v_idx, vehicle in enumerate(vehicles):
@@ -110,17 +113,15 @@ class ExactSolver:
                     )
 
                 candidate_sol = VRPSolution(routes=routes)
-                # Apply 2-opt intra-route improvement
-                refined_sol = two_opt(candidate_sol, self.problem, self.weights)
-                fit = compute_fitness(refined_sol, self.problem, self.weights)
+                fit = compute_fitness(candidate_sol, self.problem, self.weights)
 
-                feas = check_feasibility(refined_sol, self.problem)
+                feas = check_feasibility(candidate_sol, self.problem)
                 if feas.is_feasible:
                     feasible_explored += 1
 
                 if fit < best_fitness:
                     best_fitness = fit
-                    best_solution = refined_sol
+                    best_solution = candidate_sol
                     convergence_history[total_explored] = float(best_fitness)
 
         elapsed = time.perf_counter() - start_time

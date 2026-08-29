@@ -117,23 +117,63 @@ The unified benchmark execution framework is implemented under [`experiments/ben
 
 ---
 
-## 7. M11 Requirement Matrix
+## 7. Milestone 11 Phase 4 Implementation Details
+
+### Components Implemented:
+1. **Statistical Aggregation Engine ([`analysis.py`](file:///c:/git/Q-Route/experiments/benchmarks/analysis.py))**:
+   - Ingests raw multi-trial benchmark metrics (`benchmark_results.csv`, `benchmark_results.json`, `convergence_histories.json`).
+   - Computes statistical summaries (mean, std, median, min, max) grouped by `(instance_id, algorithm)` for objective fitness, runtime, distance, travel time, and congestion.
+   - Computes feasibility breakdown and failure isolation matrices.
+   - Computes instance-size scalability metrics across problem scales.
+   - Generates tabular machine-readable exports:
+     - [`results/analysis/algorithm_comparison.csv`](file:///c:/git/Q-Route/results/analysis/algorithm_comparison.csv)
+     - [`results/analysis/runtime_comparison.csv`](file:///c:/git/Q-Route/results/analysis/runtime_comparison.csv)
+     - [`results/analysis/feasibility.csv`](file:///c:/git/Q-Route/results/analysis/feasibility.csv)
+     - [`results/analysis/scalability.csv`](file:///c:/git/Q-Route/results/analysis/scalability.csv)
+     - [`results/analysis/summary.json`](file:///c:/git/Q-Route/results/analysis/summary.json)
+     - [`results/analysis/benchmark_analysis.md`](file:///c:/git/Q-Route/results/analysis/benchmark_analysis.md)
+
+2. **Zero-Dependency Vector Charting Engine ([`plot_utils.py`](file:///c:/git/Q-Route/experiments/benchmarks/plot_utils.py))**:
+   - Pure-Python SVG and PNG scientific visualization generator matching Q-Route enterprise SaaS theme (`#0a0e1a` dark slate palette).
+   - Generates publication-ready vector figures:
+     - [`results/figures/convergence_comparison.svg`](file:///c:/git/Q-Route/results/figures/convergence_comparison.svg): Iteration vs fitness curves across all algorithms.
+     - [`results/figures/objective_comparison.svg`](file:///c:/git/Q-Route/results/figures/objective_comparison.svg): Grouped bar chart comparing solution quality with standard deviation error bars.
+     - [`results/figures/runtime_comparison.svg`](file:///c:/git/Q-Route/results/figures/runtime_comparison.svg): Grouped bar chart comparing execution wall-clock time.
+     - [`results/figures/scalability_runtime.svg`](file:///c:/git/Q-Route/results/figures/scalability_runtime.svg): Scaling runtime vs problem size ($N$).
+     - [`results/figures/scalability_objective.svg`](file:///c:/git/Q-Route/results/figures/scalability_objective.svg): Solution quality scaling curve.
+     - [`results/figures/feasibility_comparison.svg`](file:///c:/git/Q-Route/results/figures/feasibility_comparison.svg): Feasibility success rate chart.
+
+3. **CLI Analysis Tool ([`analyze_results.py`](file:///c:/git/Q-Route/experiments/benchmarks/analyze_results.py))**:
+   - Entry point: `python -m experiments.benchmarks.analyze_results --results-dir results/benchmarks --out-dir results/analysis --figures-dir results/figures`.
+
+### Verification Results:
+- **Phase 4 Test Suite**: `3 passed in 1.25s` ([`backend/tests/test_analysis.py`](file:///c:/git/Q-Route/backend/tests/test_analysis.py)).
+- **All M11 Tests**: `27 passed in 25.38s` (`test_analysis.py`, `test_benchmark_runner.py`, `test_benchmarks.py`, `test_comparators.py`).
+- **Full Backend Regression Suite**: `378 passed in 43.69s` with 0 failures.
+- **Empirical Optimality Finding**: Exact solver proved global minimum fitness $78.6381$ on `small_seed_42` ($N=6$) in $57.9\text{s}-91.6\text{s}$. `QPSO` reliably converged to the exact identical global optimum $78.6381$ ($0.0\%$ gap) in $3.3\text{s}-5.5\text{s}$.
+- **Protected Files Invariance**: `backend/app/qpso/*`, `objective.py`, `feasibility.py`, and `frontend/*` remain untouched.
+- **Zero New External Dependencies Added**.
+
+---
+
+## 8. M11 Requirement Matrix
 
 | Requirement | Description | Status | Notes |
 |---|---|---|---|
-| **A. QPSO Baseline** | Discrete Quantum PSO solver with repair + 2-opt | **Already Exists** | Fully integrated in benchmark runner |
-| **B. Conventional Metaheuristics** | Classical PSO, Genetic Algorithm (GA), Simulated Annealing (SA) | **Completed (Phase 1)** | Fully integrated in benchmark runner |
+| **A. QPSO Baseline** | Discrete Quantum PSO solver with repair + 2-opt | **Completed** | Integrated in benchmark runner & analysis |
+| **B. Conventional Metaheuristics** | Classical PSO, Genetic Algorithm (GA), Simulated Annealing (SA) | **Completed (Phase 1)** | Integrated in runner, stats, & charts |
 | **C. Exact Method** | Optimal baseline for small instances (Branch-and-Bound / Brute-force ILP) | **Completed (Phase 1)** | Integrated with $N \le 8$ safety guard |
-| **D. Multiple Problem Sizes** | Small ($N=6$), Medium ($N=15$), Large ($N=30$), Stress ($N=50+$) | **Completed (Phase 2)** | 20 instances generated in `data/benchmarks/` |
+| **D. Multiple Problem Sizes** | Small ($N=6$), Medium ($N=15$), Large ($N=30$), Stress ($N=50+$) | **Completed (Phase 2)** | 20 instances in `data/benchmarks/` |
 | **E. Stochastic Trials** | Multi-seed runs (e.g. 10–30 runs/config) with Mean, Std, Min, Max | **Completed (Phase 3)** | Supported via `--trials` & seed offsets |
-| **F. Fitness Comparison** | Objective score comparison across algorithms | **Completed (Phase 3)** | Captured in CSV & JSON results |
-| **G. Distance Comparison** | Total route distance (km) metric | **Completed (Phase 3)** | Captured in CSV & JSON results |
-| **H. Travel-Time Comparison** | Total effective travel time (min) metric | **Completed (Phase 3)** | Captured in CSV & JSON results |
-| **I. Congestion Comparison** | Congestion penalty avoidance metric | **Completed (Phase 3)** | Captured in CSV & JSON results |
-| **J. Runtime Comparison** | CPU wall-clock execution time (ms) | **Completed (Phase 3)** | High-resolution timing captured |
-| **K. Convergence Comparison** | Iteration-by-iteration fitness trajectories | **Completed (Phase 3)** | Exported in `convergence_histories.json` |
-| **L. Scalability Analysis** | Solution quality vs runtime scaling as customer/node counts grow | **Pending Phase 4** | Analysis & plot generation needed |
+| **F. Fitness Comparison** | Objective score comparison across algorithms | **Completed (Phase 4)** | Aggregated in `algorithm_comparison.csv` |
+| **G. Distance Comparison** | Total route distance (km) metric | **Completed (Phase 4)** | Statistical metrics computed & exported |
+| **H. Travel-Time Comparison** | Total effective travel time (min) metric | **Completed (Phase 4)** | Statistical metrics computed & exported |
+| **I. Congestion Comparison** | Congestion penalty avoidance metric | **Completed (Phase 4)** | Statistical metrics computed & exported |
+| **J. Runtime Comparison** | CPU wall-clock execution time (ms) | **Completed (Phase 4)** | `runtime_comparison.csv` & SVG charts |
+| **K. Convergence Comparison** | Iteration-by-iteration fitness trajectories | **Completed (Phase 4)** | `convergence_comparison.svg` chart |
+| **L. Scalability Analysis** | Solution quality vs runtime scaling as customer/node counts grow | **Completed (Phase 4)** | `scalability.csv` & scalability SVG plots |
 | **M. Reproducible Seeds** | Deterministic experiment generation | **Completed (Phase 2)** | Seed parameterization across all trials |
-| **N. CSV/JSON Raw Results** | Structured output logs in `results/` | **Completed (Phase 3)** | CSV, JSON, and convergence files exported |
-| **O. Benchmark Visualizations** | Comparative convergence, boxplots, scaling curves | **Pending Phase 4** | Plot generation script needed |
-| **P. Incident Rerouting Evaluation** | Dynamic selective re-optimization vs full re-solve benchmark | **Pending Phase 5** | Incident benchmark needed |
+| **N. CSV/JSON Raw Results** | Structured output logs in `results/` | **Completed (Phase 3 & 4)** | Full suite of CSV, JSON, and MD reports |
+| **O. Benchmark Visualizations** | Comparative convergence, boxplots, scaling curves | **Completed (Phase 4)** | 6 vector SVG figures in `results/figures/` |
+| **P. Incident Rerouting Evaluation** | Dynamic selective re-optimization vs full re-solve benchmark | **Pending Phase 5** | Incident benchmark next |
+
