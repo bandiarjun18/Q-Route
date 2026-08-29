@@ -1,0 +1,2479 @@
+{
+  "meta": {
+    "n_vehicles": 4,
+    "n_customers": 15
+  },
+  "graph": {
+    "nodes": [
+      {
+        "id": 0,
+        "node_type": "depot",
+        "x": 13.584064,
+        "y": 1.158402
+      },
+      {
+        "id": 1,
+        "node_type": "depot",
+        "x": 4.088546,
+        "y": 9.327757
+      },
+      {
+        "id": 2,
+        "node_type": "intersection",
+        "x": 14.010426,
+        "y": 1.274202
+      },
+      {
+        "id": 3,
+        "node_type": "intersection",
+        "x": 9.438447,
+        "y": 11.633576
+      },
+      {
+        "id": 4,
+        "node_type": "customer",
+        "x": 7.671653,
+        "y": 11.227616
+      },
+      {
+        "id": 5,
+        "node_type": "customer",
+        "x": 13.207372,
+        "y": 7.4872
+      },
+      {
+        "id": 6,
+        "node_type": "intersection",
+        "x": 11.923577,
+        "y": 0.827584
+      },
+      {
+        "id": 7,
+        "node_type": "intersection",
+        "x": 10.955388,
+        "y": 11.593541
+      },
+      {
+        "id": 8,
+        "node_type": "intersection",
+        "x": 0.997049,
+        "y": 1.575887
+      },
+      {
+        "id": 9,
+        "node_type": "customer",
+        "x": 5.85142,
+        "y": 4.89133
+      },
+      {
+        "id": 10,
+        "node_type": "intersection",
+        "x": 3.775277,
+        "y": 12.64391
+      },
+      {
+        "id": 11,
+        "node_type": "intersection",
+        "x": 0.106072,
+        "y": 2.716539
+      },
+      {
+        "id": 12,
+        "node_type": "customer",
+        "x": 9.574403,
+        "y": 7.181304
+      },
+      {
+        "id": 13,
+        "node_type": "intersection",
+        "x": 7.517109,
+        "y": 10.21418
+      },
+      {
+        "id": 14,
+        "node_type": "intersection",
+        "x": 0.833106,
+        "y": 11.007402
+      },
+      {
+        "id": 15,
+        "node_type": "customer",
+        "x": 9.799652,
+        "y": 13.500028
+      },
+      {
+        "id": 16,
+        "node_type": "customer",
+        "x": 9.329281,
+        "y": 14.873984
+      },
+      {
+        "id": 17,
+        "node_type": "intersection",
+        "x": 7.459028,
+        "y": 10.808557
+      },
+      {
+        "id": 18,
+        "node_type": "customer",
+        "x": 0.646433,
+        "y": 3.891199
+      },
+      {
+        "id": 19,
+        "node_type": "intersection",
+        "x": 2.595278,
+        "y": 8.178018
+      },
+      {
+        "id": 20,
+        "node_type": "customer",
+        "x": 6.722832,
+        "y": 2.891994
+      },
+      {
+        "id": 21,
+        "node_type": "intersection",
+        "x": 6.954903,
+        "y": 1.979098
+      },
+      {
+        "id": 22,
+        "node_type": "intersection",
+        "x": 6.768822,
+        "y": 14.35122
+      },
+      {
+        "id": 23,
+        "node_type": "intersection",
+        "x": 7.663674,
+        "y": 6.740804
+      },
+      {
+        "id": 24,
+        "node_type": "intersection",
+        "x": 7.260991,
+        "y": 3.711445
+      },
+      {
+        "id": 25,
+        "node_type": "customer",
+        "x": 8.649099,
+        "y": 2.372335
+      },
+      {
+        "id": 26,
+        "node_type": "intersection",
+        "x": 1.497567,
+        "y": 7.366548
+      },
+      {
+        "id": 27,
+        "node_type": "intersection",
+        "x": 2.001653,
+        "y": 10.165323
+      },
+      {
+        "id": 28,
+        "node_type": "intersection",
+        "x": 9.237848,
+        "y": 6.98681
+      },
+      {
+        "id": 29,
+        "node_type": "intersection",
+        "x": 3.021369,
+        "y": 6.022317
+      },
+      {
+        "id": 30,
+        "node_type": "customer",
+        "x": 14.163999,
+        "y": 10.307991
+      },
+      {
+        "id": 31,
+        "node_type": "intersection",
+        "x": 12.15935,
+        "y": 2.267046
+      },
+      {
+        "id": 32,
+        "node_type": "intersection",
+        "x": 14.540672,
+        "y": 5.430645
+      },
+      {
+        "id": 33,
+        "node_type": "customer",
+        "x": 5.631226,
+        "y": 5.676858
+      },
+      {
+        "id": 34,
+        "node_type": "customer",
+        "x": 1.492287,
+        "y": 11.163153
+      },
+      {
+        "id": 35,
+        "node_type": "customer",
+        "x": 4.018235,
+        "y": 7.386861
+      },
+      {
+        "id": 36,
+        "node_type": "intersection",
+        "x": 13.96353,
+        "y": 9.273228
+      },
+      {
+        "id": 37,
+        "node_type": "customer",
+        "x": 13.530807,
+        "y": 3.023647
+      },
+      {
+        "id": 38,
+        "node_type": "intersection",
+        "x": 6.346148,
+        "y": 10.139521
+      },
+      {
+        "id": 39,
+        "node_type": "customer",
+        "x": 4.937325,
+        "y": 7.842231
+      }
+    ],
+    "edges": [
+      {
+        "u": 0,
+        "v": 37,
+        "distance": 1.866006,
+        "base_travel_time": 2.516911,
+        "congestion_factor": 2.0031,
+        "road_status": "open"
+      },
+      {
+        "u": 0,
+        "v": 2,
+        "distance": 0.441808,
+        "base_travel_time": 0.42033,
+        "congestion_factor": 2.2868,
+        "road_status": "open"
+      },
+      {
+        "u": 0,
+        "v": 31,
+        "distance": 1.805243,
+        "base_travel_time": 2.461177,
+        "congestion_factor": 1.2744,
+        "road_status": "open"
+      },
+      {
+        "u": 0,
+        "v": 6,
+        "distance": 1.693121,
+        "base_travel_time": 2.719102,
+        "congestion_factor": 1.172,
+        "road_status": "open"
+      },
+      {
+        "u": 1,
+        "v": 33,
+        "distance": 3.963448,
+        "base_travel_time": 6.297769,
+        "congestion_factor": 2.1298,
+        "road_status": "open"
+      },
+      {
+        "u": 1,
+        "v": 17,
+        "distance": 3.681428,
+        "base_travel_time": 5.69052,
+        "congestion_factor": 1.3259,
+        "road_status": "open"
+      },
+      {
+        "u": 1,
+        "v": 26,
+        "distance": 3.249541,
+        "base_travel_time": 3.054623,
+        "congestion_factor": 1.3539,
+        "road_status": "open"
+      },
+      {
+        "u": 1,
+        "v": 35,
+        "distance": 1.942169,
+        "base_travel_time": 3.696089,
+        "congestion_factor": 2.14,
+        "road_status": "open"
+      },
+      {
+        "u": 1,
+        "v": 10,
+        "distance": 3.330917,
+        "base_travel_time": 4.487417,
+        "congestion_factor": 1.2577,
+        "road_status": "open"
+      },
+      {
+        "u": 1,
+        "v": 19,
+        "distance": 1.884609,
+        "base_travel_time": 1.872915,
+        "congestion_factor": 1.6251,
+        "road_status": "open"
+      },
+      {
+        "u": 1,
+        "v": 39,
+        "distance": 1.71091,
+        "base_travel_time": 3.356505,
+        "congestion_factor": 2.398,
+        "road_status": "open"
+      },
+      {
+        "u": 1,
+        "v": 14,
+        "distance": 3.663208,
+        "base_travel_time": 6.87668,
+        "congestion_factor": 1.5015,
+        "road_status": "open"
+      },
+      {
+        "u": 1,
+        "v": 13,
+        "distance": 3.541297,
+        "base_travel_time": 3.280921,
+        "congestion_factor": 1.9365,
+        "road_status": "open"
+      },
+      {
+        "u": 1,
+        "v": 34,
+        "distance": 3.179503,
+        "base_travel_time": 2.802808,
+        "congestion_factor": 2.0157,
+        "road_status": "open"
+      },
+      {
+        "u": 1,
+        "v": 27,
+        "distance": 2.248697,
+        "base_travel_time": 1.800598,
+        "congestion_factor": 1.0431,
+        "road_status": "open"
+      },
+      {
+        "u": 1,
+        "v": 29,
+        "distance": 3.473442,
+        "base_travel_time": 2.76645,
+        "congestion_factor": 1.0588,
+        "road_status": "open"
+      },
+      {
+        "u": 1,
+        "v": 38,
+        "distance": 2.399109,
+        "base_travel_time": 2.865304,
+        "congestion_factor": 2.2126,
+        "road_status": "open"
+      },
+      {
+        "u": 2,
+        "v": 0,
+        "distance": 0.441808,
+        "base_travel_time": 0.42033,
+        "congestion_factor": 2.2868,
+        "road_status": "open"
+      },
+      {
+        "u": 2,
+        "v": 31,
+        "distance": 2.100529,
+        "base_travel_time": 3.731835,
+        "congestion_factor": 1.6075,
+        "road_status": "open"
+      },
+      {
+        "u": 2,
+        "v": 6,
+        "distance": 2.134106,
+        "base_travel_time": 3.416559,
+        "congestion_factor": 1.3337,
+        "road_status": "closed"
+      },
+      {
+        "u": 2,
+        "v": 37,
+        "distance": 1.814,
+        "base_travel_time": 1.73847,
+        "congestion_factor": 1.5528,
+        "road_status": "open"
+      },
+      {
+        "u": 3,
+        "v": 13,
+        "distance": 2.38877,
+        "base_travel_time": 3.415368,
+        "congestion_factor": 2.1196,
+        "road_status": "open"
+      },
+      {
+        "u": 3,
+        "v": 22,
+        "distance": 3.809525,
+        "base_travel_time": 7.41784,
+        "congestion_factor": 2.318,
+        "road_status": "open"
+      },
+      {
+        "u": 3,
+        "v": 15,
+        "distance": 1.901081,
+        "base_travel_time": 1.833385,
+        "congestion_factor": 2.1578,
+        "road_status": "open"
+      },
+      {
+        "u": 3,
+        "v": 17,
+        "distance": 2.144471,
+        "base_travel_time": 2.39756,
+        "congestion_factor": 2.4924,
+        "road_status": "open"
+      },
+      {
+        "u": 3,
+        "v": 7,
+        "distance": 1.517469,
+        "base_travel_time": 2.307532,
+        "congestion_factor": 1.3663,
+        "road_status": "open"
+      },
+      {
+        "u": 3,
+        "v": 16,
+        "distance": 3.242246,
+        "base_travel_time": 4.161557,
+        "congestion_factor": 2.1499,
+        "road_status": "open"
+      },
+      {
+        "u": 3,
+        "v": 4,
+        "distance": 1.812833,
+        "base_travel_time": 2.748726,
+        "congestion_factor": 1.3892,
+        "road_status": "open"
+      },
+      {
+        "u": 3,
+        "v": 38,
+        "distance": 3.434314,
+        "base_travel_time": 2.706861,
+        "congestion_factor": 1.5585,
+        "road_status": "open"
+      },
+      {
+        "u": 4,
+        "v": 38,
+        "distance": 1.714909,
+        "base_travel_time": 2.113155,
+        "congestion_factor": 1.4163,
+        "road_status": "open"
+      },
+      {
+        "u": 4,
+        "v": 13,
+        "distance": 1.025152,
+        "base_travel_time": 1.309595,
+        "congestion_factor": 2.1233,
+        "road_status": "open"
+      },
+      {
+        "u": 4,
+        "v": 22,
+        "distance": 3.251462,
+        "base_travel_time": 4.656947,
+        "congestion_factor": 2.0456,
+        "road_status": "open"
+      },
+      {
+        "u": 4,
+        "v": 15,
+        "distance": 3.113235,
+        "base_travel_time": 3.365805,
+        "congestion_factor": 1.7173,
+        "road_status": "open"
+      },
+      {
+        "u": 4,
+        "v": 17,
+        "distance": 0.469915,
+        "base_travel_time": 0.735356,
+        "congestion_factor": 2.0788,
+        "road_status": "open"
+      },
+      {
+        "u": 4,
+        "v": 3,
+        "distance": 1.812833,
+        "base_travel_time": 2.748726,
+        "congestion_factor": 1.3892,
+        "road_status": "open"
+      },
+      {
+        "u": 4,
+        "v": 7,
+        "distance": 3.304061,
+        "base_travel_time": 4.297992,
+        "congestion_factor": 2.3453,
+        "road_status": "open"
+      },
+      {
+        "u": 5,
+        "v": 12,
+        "distance": 3.645825,
+        "base_travel_time": 3.185034,
+        "congestion_factor": 1.6092,
+        "road_status": "closed"
+      },
+      {
+        "u": 5,
+        "v": 30,
+        "distance": 2.97859,
+        "base_travel_time": 4.846474,
+        "congestion_factor": 1.141,
+        "road_status": "open"
+      },
+      {
+        "u": 5,
+        "v": 32,
+        "distance": 2.450939,
+        "base_travel_time": 3.234351,
+        "congestion_factor": 1.2542,
+        "road_status": "open"
+      },
+      {
+        "u": 5,
+        "v": 36,
+        "distance": 1.939504,
+        "base_travel_time": 1.876714,
+        "congestion_factor": 1.956,
+        "road_status": "open"
+      },
+      {
+        "u": 6,
+        "v": 31,
+        "distance": 1.458643,
+        "base_travel_time": 2.902568,
+        "congestion_factor": 1.7627,
+        "road_status": "open"
+      },
+      {
+        "u": 6,
+        "v": 2,
+        "distance": 2.134106,
+        "base_travel_time": 3.416559,
+        "congestion_factor": 1.3337,
+        "road_status": "closed"
+      },
+      {
+        "u": 6,
+        "v": 37,
+        "distance": 2.721375,
+        "base_travel_time": 4.590522,
+        "congestion_factor": 2.1051,
+        "road_status": "open"
+      },
+      {
+        "u": 6,
+        "v": 0,
+        "distance": 1.693121,
+        "base_travel_time": 2.719102,
+        "congestion_factor": 1.172,
+        "road_status": "open"
+      },
+      {
+        "u": 6,
+        "v": 25,
+        "distance": 3.620561,
+        "base_travel_time": 3.237581,
+        "congestion_factor": 1.9819,
+        "road_status": "open"
+      },
+      {
+        "u": 7,
+        "v": 17,
+        "distance": 3.583397,
+        "base_travel_time": 3.36647,
+        "congestion_factor": 1.7737,
+        "road_status": "open"
+      },
+      {
+        "u": 7,
+        "v": 30,
+        "distance": 3.456562,
+        "base_travel_time": 2.973324,
+        "congestion_factor": 2.1821,
+        "road_status": "open"
+      },
+      {
+        "u": 7,
+        "v": 16,
+        "distance": 3.661356,
+        "base_travel_time": 4.484854,
+        "congestion_factor": 1.162,
+        "road_status": "open"
+      },
+      {
+        "u": 7,
+        "v": 3,
+        "distance": 1.517469,
+        "base_travel_time": 2.307532,
+        "congestion_factor": 1.3663,
+        "road_status": "open"
+      },
+      {
+        "u": 7,
+        "v": 36,
+        "distance": 3.799049,
+        "base_travel_time": 3.105345,
+        "congestion_factor": 1.5086,
+        "road_status": "open"
+      },
+      {
+        "u": 7,
+        "v": 13,
+        "distance": 3.704646,
+        "base_travel_time": 4.267919,
+        "congestion_factor": 1.7732,
+        "road_status": "open"
+      },
+      {
+        "u": 7,
+        "v": 15,
+        "distance": 2.229443,
+        "base_travel_time": 2.281285,
+        "congestion_factor": 2.1322,
+        "road_status": "open"
+      },
+      {
+        "u": 7,
+        "v": 4,
+        "distance": 3.304061,
+        "base_travel_time": 4.297992,
+        "congestion_factor": 2.3453,
+        "road_status": "open"
+      },
+      {
+        "u": 8,
+        "v": 18,
+        "distance": 2.341708,
+        "base_travel_time": 4.276308,
+        "congestion_factor": 1.1904,
+        "road_status": "open"
+      },
+      {
+        "u": 8,
+        "v": 11,
+        "distance": 1.447386,
+        "base_travel_time": 2.024071,
+        "congestion_factor": 1.6246,
+        "road_status": "open"
+      },
+      {
+        "u": 9,
+        "v": 35,
+        "distance": 3.096488,
+        "base_travel_time": 3.547966,
+        "congestion_factor": 1.809,
+        "road_status": "open"
+      },
+      {
+        "u": 9,
+        "v": 28,
+        "distance": 3.982327,
+        "base_travel_time": 4.074776,
+        "congestion_factor": 1.2382,
+        "road_status": "open"
+      },
+      {
+        "u": 9,
+        "v": 21,
+        "distance": 3.114285,
+        "base_travel_time": 5.59731,
+        "congestion_factor": 2.0941,
+        "road_status": "open"
+      },
+      {
+        "u": 9,
+        "v": 39,
+        "distance": 3.089237,
+        "base_travel_time": 2.417183,
+        "congestion_factor": 1.8196,
+        "road_status": "open"
+      },
+      {
+        "u": 9,
+        "v": 23,
+        "distance": 2.589366,
+        "base_travel_time": 2.422297,
+        "congestion_factor": 1.5786,
+        "road_status": "open"
+      },
+      {
+        "u": 9,
+        "v": 25,
+        "distance": 3.764618,
+        "base_travel_time": 4.007437,
+        "congestion_factor": 1.4413,
+        "road_status": "open"
+      },
+      {
+        "u": 9,
+        "v": 20,
+        "distance": 2.180987,
+        "base_travel_time": 1.927277,
+        "congestion_factor": 1.31,
+        "road_status": "open"
+      },
+      {
+        "u": 9,
+        "v": 29,
+        "distance": 3.047674,
+        "base_travel_time": 4.002969,
+        "congestion_factor": 2.4076,
+        "road_status": "open"
+      },
+      {
+        "u": 9,
+        "v": 24,
+        "distance": 1.838211,
+        "base_travel_time": 1.732155,
+        "congestion_factor": 2.2279,
+        "road_status": "open"
+      },
+      {
+        "u": 9,
+        "v": 33,
+        "distance": 0.815806,
+        "base_travel_time": 0.711706,
+        "congestion_factor": 1.089,
+        "road_status": "open"
+      },
+      {
+        "u": 10,
+        "v": 34,
+        "distance": 2.721154,
+        "base_travel_time": 4.10621,
+        "congestion_factor": 1.0663,
+        "road_status": "open"
+      },
+      {
+        "u": 10,
+        "v": 27,
+        "distance": 3.047808,
+        "base_travel_time": 3.083726,
+        "congestion_factor": 1.7614,
+        "road_status": "open"
+      },
+      {
+        "u": 10,
+        "v": 38,
+        "distance": 3.589058,
+        "base_travel_time": 3.266384,
+        "congestion_factor": 1.3539,
+        "road_status": "open"
+      },
+      {
+        "u": 10,
+        "v": 1,
+        "distance": 3.330917,
+        "base_travel_time": 4.487417,
+        "congestion_factor": 1.2577,
+        "road_status": "open"
+      },
+      {
+        "u": 10,
+        "v": 22,
+        "distance": 3.446189,
+        "base_travel_time": 4.333887,
+        "congestion_factor": 1.8472,
+        "road_status": "open"
+      },
+      {
+        "u": 10,
+        "v": 14,
+        "distance": 3.366679,
+        "base_travel_time": 3.916596,
+        "congestion_factor": 1.0681,
+        "road_status": "open"
+      },
+      {
+        "u": 11,
+        "v": 8,
+        "distance": 1.447386,
+        "base_travel_time": 2.024071,
+        "congestion_factor": 1.6246,
+        "road_status": "open"
+      },
+      {
+        "u": 11,
+        "v": 18,
+        "distance": 1.292987,
+        "base_travel_time": 2.151594,
+        "congestion_factor": 1.7495,
+        "road_status": "open"
+      },
+      {
+        "u": 12,
+        "v": 5,
+        "distance": 3.645825,
+        "base_travel_time": 3.185034,
+        "congestion_factor": 1.6092,
+        "road_status": "closed"
+      },
+      {
+        "u": 12,
+        "v": 13,
+        "distance": 3.664805,
+        "base_travel_time": 4.039219,
+        "congestion_factor": 1.4178,
+        "road_status": "open"
+      },
+      {
+        "u": 12,
+        "v": 28,
+        "distance": 0.388712,
+        "base_travel_time": 0.631488,
+        "congestion_factor": 1.9118,
+        "road_status": "open"
+      },
+      {
+        "u": 12,
+        "v": 23,
+        "distance": 1.960848,
+        "base_travel_time": 2.211658,
+        "congestion_factor": 1.7186,
+        "road_status": "open"
+      },
+      {
+        "u": 13,
+        "v": 3,
+        "distance": 2.38877,
+        "base_travel_time": 3.415368,
+        "congestion_factor": 2.1196,
+        "road_status": "open"
+      },
+      {
+        "u": 13,
+        "v": 17,
+        "distance": 0.597208,
+        "base_travel_time": 0.668688,
+        "congestion_factor": 1.7018,
+        "road_status": "open"
+      },
+      {
+        "u": 13,
+        "v": 28,
+        "distance": 3.65744,
+        "base_travel_time": 7.120395,
+        "congestion_factor": 2.1072,
+        "road_status": "closed"
+      },
+      {
+        "u": 13,
+        "v": 12,
+        "distance": 3.664805,
+        "base_travel_time": 4.039219,
+        "congestion_factor": 1.4178,
+        "road_status": "open"
+      },
+      {
+        "u": 13,
+        "v": 23,
+        "distance": 3.476467,
+        "base_travel_time": 3.35478,
+        "congestion_factor": 2.3164,
+        "road_status": "open"
+      },
+      {
+        "u": 13,
+        "v": 4,
+        "distance": 1.025152,
+        "base_travel_time": 1.309595,
+        "congestion_factor": 2.1233,
+        "road_status": "open"
+      },
+      {
+        "u": 13,
+        "v": 39,
+        "distance": 3.504486,
+        "base_travel_time": 4.440246,
+        "congestion_factor": 1.424,
+        "road_status": "open"
+      },
+      {
+        "u": 13,
+        "v": 1,
+        "distance": 3.541297,
+        "base_travel_time": 3.280921,
+        "congestion_factor": 1.9365,
+        "road_status": "open"
+      },
+      {
+        "u": 13,
+        "v": 7,
+        "distance": 3.704646,
+        "base_travel_time": 4.267919,
+        "congestion_factor": 1.7732,
+        "road_status": "open"
+      },
+      {
+        "u": 13,
+        "v": 38,
+        "distance": 1.173339,
+        "base_travel_time": 1.370759,
+        "congestion_factor": 1.6163,
+        "road_status": "open"
+      },
+      {
+        "u": 14,
+        "v": 26,
+        "distance": 3.70099,
+        "base_travel_time": 2.868593,
+        "congestion_factor": 1.3198,
+        "road_status": "open"
+      },
+      {
+        "u": 14,
+        "v": 19,
+        "distance": 3.333266,
+        "base_travel_time": 3.181848,
+        "congestion_factor": 1.3966,
+        "road_status": "open"
+      },
+      {
+        "u": 14,
+        "v": 1,
+        "distance": 3.663208,
+        "base_travel_time": 6.87668,
+        "congestion_factor": 1.5015,
+        "road_status": "open"
+      },
+      {
+        "u": 14,
+        "v": 10,
+        "distance": 3.366679,
+        "base_travel_time": 3.916596,
+        "congestion_factor": 1.0681,
+        "road_status": "open"
+      },
+      {
+        "u": 14,
+        "v": 34,
+        "distance": 0.677331,
+        "base_travel_time": 0.552784,
+        "congestion_factor": 1.0104,
+        "road_status": "open"
+      },
+      {
+        "u": 14,
+        "v": 27,
+        "distance": 1.440347,
+        "base_travel_time": 1.71861,
+        "congestion_factor": 1.9301,
+        "road_status": "open"
+      },
+      {
+        "u": 15,
+        "v": 3,
+        "distance": 1.901081,
+        "base_travel_time": 1.833385,
+        "congestion_factor": 2.1578,
+        "road_status": "open"
+      },
+      {
+        "u": 15,
+        "v": 16,
+        "distance": 1.452241,
+        "base_travel_time": 1.809923,
+        "congestion_factor": 2.4676,
+        "road_status": "open"
+      },
+      {
+        "u": 15,
+        "v": 4,
+        "distance": 3.113235,
+        "base_travel_time": 3.365805,
+        "congestion_factor": 1.7173,
+        "road_status": "open"
+      },
+      {
+        "u": 15,
+        "v": 22,
+        "distance": 3.148088,
+        "base_travel_time": 2.563521,
+        "congestion_factor": 2.4118,
+        "road_status": "open"
+      },
+      {
+        "u": 15,
+        "v": 17,
+        "distance": 3.566866,
+        "base_travel_time": 2.682512,
+        "congestion_factor": 1.1591,
+        "road_status": "open"
+      },
+      {
+        "u": 15,
+        "v": 7,
+        "distance": 2.229443,
+        "base_travel_time": 2.281285,
+        "congestion_factor": 2.1322,
+        "road_status": "open"
+      },
+      {
+        "u": 16,
+        "v": 22,
+        "distance": 2.61328,
+        "base_travel_time": 2.425002,
+        "congestion_factor": 1.4859,
+        "road_status": "open"
+      },
+      {
+        "u": 16,
+        "v": 15,
+        "distance": 1.452241,
+        "base_travel_time": 1.809923,
+        "congestion_factor": 2.4676,
+        "road_status": "open"
+      },
+      {
+        "u": 16,
+        "v": 7,
+        "distance": 3.661356,
+        "base_travel_time": 4.484854,
+        "congestion_factor": 1.162,
+        "road_status": "open"
+      },
+      {
+        "u": 16,
+        "v": 3,
+        "distance": 3.242246,
+        "base_travel_time": 4.161557,
+        "congestion_factor": 2.1499,
+        "road_status": "open"
+      },
+      {
+        "u": 17,
+        "v": 7,
+        "distance": 3.583397,
+        "base_travel_time": 3.36647,
+        "congestion_factor": 1.7737,
+        "road_status": "open"
+      },
+      {
+        "u": 17,
+        "v": 13,
+        "distance": 0.597208,
+        "base_travel_time": 0.668688,
+        "congestion_factor": 1.7018,
+        "road_status": "open"
+      },
+      {
+        "u": 17,
+        "v": 1,
+        "distance": 3.681428,
+        "base_travel_time": 5.69052,
+        "congestion_factor": 1.3259,
+        "road_status": "open"
+      },
+      {
+        "u": 17,
+        "v": 3,
+        "distance": 2.144471,
+        "base_travel_time": 2.39756,
+        "congestion_factor": 2.4924,
+        "road_status": "open"
+      },
+      {
+        "u": 17,
+        "v": 39,
+        "distance": 3.893337,
+        "base_travel_time": 3.865241,
+        "congestion_factor": 2.4322,
+        "road_status": "open"
+      },
+      {
+        "u": 17,
+        "v": 4,
+        "distance": 0.469915,
+        "base_travel_time": 0.735356,
+        "congestion_factor": 2.0788,
+        "road_status": "open"
+      },
+      {
+        "u": 17,
+        "v": 38,
+        "distance": 1.298503,
+        "base_travel_time": 1.03168,
+        "congestion_factor": 1.7925,
+        "road_status": "open"
+      },
+      {
+        "u": 17,
+        "v": 22,
+        "distance": 3.609272,
+        "base_travel_time": 5.398906,
+        "congestion_factor": 1.5869,
+        "road_status": "open"
+      },
+      {
+        "u": 17,
+        "v": 15,
+        "distance": 3.566866,
+        "base_travel_time": 2.682512,
+        "congestion_factor": 1.1591,
+        "road_status": "open"
+      },
+      {
+        "u": 18,
+        "v": 26,
+        "distance": 3.578056,
+        "base_travel_time": 4.286523,
+        "congestion_factor": 1.4725,
+        "road_status": "open"
+      },
+      {
+        "u": 18,
+        "v": 8,
+        "distance": 2.341708,
+        "base_travel_time": 4.276308,
+        "congestion_factor": 1.1904,
+        "road_status": "open"
+      },
+      {
+        "u": 18,
+        "v": 11,
+        "distance": 1.292987,
+        "base_travel_time": 2.151594,
+        "congestion_factor": 1.7495,
+        "road_status": "open"
+      },
+      {
+        "u": 18,
+        "v": 29,
+        "distance": 3.190923,
+        "base_travel_time": 5.310908,
+        "congestion_factor": 1.811,
+        "road_status": "open"
+      },
+      {
+        "u": 19,
+        "v": 39,
+        "distance": 2.365997,
+        "base_travel_time": 3.599793,
+        "congestion_factor": 2.0725,
+        "road_status": "open"
+      },
+      {
+        "u": 19,
+        "v": 1,
+        "distance": 1.884609,
+        "base_travel_time": 1.872915,
+        "congestion_factor": 1.6251,
+        "road_status": "open"
+      },
+      {
+        "u": 19,
+        "v": 34,
+        "distance": 3.182392,
+        "base_travel_time": 3.41105,
+        "congestion_factor": 1.075,
+        "road_status": "closed"
+      },
+      {
+        "u": 19,
+        "v": 14,
+        "distance": 3.333266,
+        "base_travel_time": 3.181848,
+        "congestion_factor": 1.3966,
+        "road_status": "open"
+      },
+      {
+        "u": 19,
+        "v": 27,
+        "distance": 2.074071,
+        "base_travel_time": 2.515622,
+        "congestion_factor": 2.1046,
+        "road_status": "open"
+      },
+      {
+        "u": 19,
+        "v": 29,
+        "distance": 2.197408,
+        "base_travel_time": 2.416714,
+        "congestion_factor": 1.4366,
+        "road_status": "open"
+      },
+      {
+        "u": 19,
+        "v": 33,
+        "distance": 3.933546,
+        "base_travel_time": 3.647723,
+        "congestion_factor": 2.271,
+        "road_status": "open"
+      },
+      {
+        "u": 19,
+        "v": 26,
+        "distance": 1.365083,
+        "base_travel_time": 2.019846,
+        "congestion_factor": 1.4505,
+        "road_status": "open"
+      },
+      {
+        "u": 19,
+        "v": 35,
+        "distance": 1.628109,
+        "base_travel_time": 2.140179,
+        "congestion_factor": 1.5945,
+        "road_status": "open"
+      },
+      {
+        "u": 20,
+        "v": 24,
+        "distance": 0.980365,
+        "base_travel_time": 1.667195,
+        "congestion_factor": 1.8176,
+        "road_status": "open"
+      },
+      {
+        "u": 20,
+        "v": 33,
+        "distance": 2.991166,
+        "base_travel_time": 3.763972,
+        "congestion_factor": 2.039,
+        "road_status": "open"
+      },
+      {
+        "u": 20,
+        "v": 21,
+        "distance": 0.941932,
+        "base_travel_time": 0.713213,
+        "congestion_factor": 1.2634,
+        "road_status": "open"
+      },
+      {
+        "u": 20,
+        "v": 23,
+        "distance": 3.962137,
+        "base_travel_time": 5.105253,
+        "congestion_factor": 2.4142,
+        "road_status": "open"
+      },
+      {
+        "u": 20,
+        "v": 25,
+        "distance": 1.995132,
+        "base_travel_time": 2.763443,
+        "congestion_factor": 2.3425,
+        "road_status": "open"
+      },
+      {
+        "u": 20,
+        "v": 9,
+        "distance": 2.180987,
+        "base_travel_time": 1.927277,
+        "congestion_factor": 1.31,
+        "road_status": "open"
+      },
+      {
+        "u": 21,
+        "v": 9,
+        "distance": 3.114285,
+        "base_travel_time": 5.59731,
+        "congestion_factor": 2.0941,
+        "road_status": "open"
+      },
+      {
+        "u": 21,
+        "v": 25,
+        "distance": 1.739235,
+        "base_travel_time": 1.979757,
+        "congestion_factor": 1.9332,
+        "road_status": "open"
+      },
+      {
+        "u": 21,
+        "v": 20,
+        "distance": 0.941932,
+        "base_travel_time": 0.713213,
+        "congestion_factor": 1.2634,
+        "road_status": "open"
+      },
+      {
+        "u": 21,
+        "v": 24,
+        "distance": 1.75918,
+        "base_travel_time": 2.109262,
+        "congestion_factor": 2.3371,
+        "road_status": "open"
+      },
+      {
+        "u": 21,
+        "v": 33,
+        "distance": 3.927538,
+        "base_travel_time": 3.379966,
+        "congestion_factor": 1.1301,
+        "road_status": "open"
+      },
+      {
+        "u": 22,
+        "v": 3,
+        "distance": 3.809525,
+        "base_travel_time": 7.41784,
+        "congestion_factor": 2.318,
+        "road_status": "open"
+      },
+      {
+        "u": 22,
+        "v": 16,
+        "distance": 2.61328,
+        "base_travel_time": 2.425002,
+        "congestion_factor": 1.4859,
+        "road_status": "open"
+      },
+      {
+        "u": 22,
+        "v": 10,
+        "distance": 3.446189,
+        "base_travel_time": 4.333887,
+        "congestion_factor": 1.8472,
+        "road_status": "open"
+      },
+      {
+        "u": 22,
+        "v": 4,
+        "distance": 3.251462,
+        "base_travel_time": 4.656947,
+        "congestion_factor": 2.0456,
+        "road_status": "open"
+      },
+      {
+        "u": 22,
+        "v": 15,
+        "distance": 3.148088,
+        "base_travel_time": 2.563521,
+        "congestion_factor": 2.4118,
+        "road_status": "open"
+      },
+      {
+        "u": 22,
+        "v": 17,
+        "distance": 3.609272,
+        "base_travel_time": 5.398906,
+        "congestion_factor": 1.5869,
+        "road_status": "open"
+      },
+      {
+        "u": 23,
+        "v": 38,
+        "distance": 3.645154,
+        "base_travel_time": 3.656296,
+        "congestion_factor": 1.1685,
+        "road_status": "open"
+      },
+      {
+        "u": 23,
+        "v": 13,
+        "distance": 3.476467,
+        "base_travel_time": 3.35478,
+        "congestion_factor": 2.3164,
+        "road_status": "open"
+      },
+      {
+        "u": 23,
+        "v": 24,
+        "distance": 3.056006,
+        "base_travel_time": 3.40932,
+        "congestion_factor": 1.474,
+        "road_status": "open"
+      },
+      {
+        "u": 23,
+        "v": 33,
+        "distance": 2.294085,
+        "base_travel_time": 1.825795,
+        "congestion_factor": 1.0698,
+        "road_status": "open"
+      },
+      {
+        "u": 23,
+        "v": 35,
+        "distance": 3.702244,
+        "base_travel_time": 6.624221,
+        "congestion_factor": 1.7978,
+        "road_status": "open"
+      },
+      {
+        "u": 23,
+        "v": 20,
+        "distance": 3.962137,
+        "base_travel_time": 5.105253,
+        "congestion_factor": 2.4142,
+        "road_status": "open"
+      },
+      {
+        "u": 23,
+        "v": 28,
+        "distance": 1.593281,
+        "base_travel_time": 2.609571,
+        "congestion_factor": 2.2608,
+        "road_status": "open"
+      },
+      {
+        "u": 23,
+        "v": 9,
+        "distance": 2.589366,
+        "base_travel_time": 2.422297,
+        "congestion_factor": 1.5786,
+        "road_status": "open"
+      },
+      {
+        "u": 23,
+        "v": 12,
+        "distance": 1.960848,
+        "base_travel_time": 2.211658,
+        "congestion_factor": 1.7186,
+        "road_status": "open"
+      },
+      {
+        "u": 23,
+        "v": 39,
+        "distance": 2.940428,
+        "base_travel_time": 5.365341,
+        "congestion_factor": 2.3677,
+        "road_status": "open"
+      },
+      {
+        "u": 24,
+        "v": 33,
+        "distance": 2.55323,
+        "base_travel_time": 3.154061,
+        "congestion_factor": 2.3011,
+        "road_status": "closed"
+      },
+      {
+        "u": 24,
+        "v": 28,
+        "distance": 3.8257,
+        "base_travel_time": 6.770491,
+        "congestion_factor": 2.4438,
+        "road_status": "open"
+      },
+      {
+        "u": 24,
+        "v": 20,
+        "distance": 0.980365,
+        "base_travel_time": 1.667195,
+        "congestion_factor": 1.8176,
+        "road_status": "open"
+      },
+      {
+        "u": 24,
+        "v": 23,
+        "distance": 3.056006,
+        "base_travel_time": 3.40932,
+        "congestion_factor": 1.474,
+        "road_status": "open"
+      },
+      {
+        "u": 24,
+        "v": 25,
+        "distance": 1.928745,
+        "base_travel_time": 1.567379,
+        "congestion_factor": 2.2666,
+        "road_status": "open"
+      },
+      {
+        "u": 24,
+        "v": 21,
+        "distance": 1.75918,
+        "base_travel_time": 2.109262,
+        "congestion_factor": 2.3371,
+        "road_status": "open"
+      },
+      {
+        "u": 24,
+        "v": 9,
+        "distance": 1.838211,
+        "base_travel_time": 1.732155,
+        "congestion_factor": 2.2279,
+        "road_status": "open"
+      },
+      {
+        "u": 25,
+        "v": 21,
+        "distance": 1.739235,
+        "base_travel_time": 1.979757,
+        "congestion_factor": 1.9332,
+        "road_status": "open"
+      },
+      {
+        "u": 25,
+        "v": 31,
+        "distance": 3.51183,
+        "base_travel_time": 5.545768,
+        "congestion_factor": 1.9736,
+        "road_status": "open"
+      },
+      {
+        "u": 25,
+        "v": 24,
+        "distance": 1.928745,
+        "base_travel_time": 1.567379,
+        "congestion_factor": 2.2666,
+        "road_status": "open"
+      },
+      {
+        "u": 25,
+        "v": 20,
+        "distance": 1.995132,
+        "base_travel_time": 2.763443,
+        "congestion_factor": 2.3425,
+        "road_status": "open"
+      },
+      {
+        "u": 25,
+        "v": 9,
+        "distance": 3.764618,
+        "base_travel_time": 4.007437,
+        "congestion_factor": 1.4413,
+        "road_status": "open"
+      },
+      {
+        "u": 25,
+        "v": 6,
+        "distance": 3.620561,
+        "base_travel_time": 3.237581,
+        "congestion_factor": 1.9819,
+        "road_status": "open"
+      },
+      {
+        "u": 26,
+        "v": 18,
+        "distance": 3.578056,
+        "base_travel_time": 4.286523,
+        "congestion_factor": 1.4725,
+        "road_status": "open"
+      },
+      {
+        "u": 26,
+        "v": 39,
+        "distance": 3.472493,
+        "base_travel_time": 4.056095,
+        "congestion_factor": 1.8769,
+        "road_status": "open"
+      },
+      {
+        "u": 26,
+        "v": 1,
+        "distance": 3.249541,
+        "base_travel_time": 3.054623,
+        "congestion_factor": 1.3539,
+        "road_status": "open"
+      },
+      {
+        "u": 26,
+        "v": 14,
+        "distance": 3.70099,
+        "base_travel_time": 2.868593,
+        "congestion_factor": 1.3198,
+        "road_status": "open"
+      },
+      {
+        "u": 26,
+        "v": 34,
+        "distance": 3.796609,
+        "base_travel_time": 5.69747,
+        "congestion_factor": 1.8796,
+        "road_status": "open"
+      },
+      {
+        "u": 26,
+        "v": 27,
+        "distance": 2.843808,
+        "base_travel_time": 2.630018,
+        "congestion_factor": 2.4944,
+        "road_status": "open"
+      },
+      {
+        "u": 26,
+        "v": 29,
+        "distance": 2.031977,
+        "base_travel_time": 2.077701,
+        "congestion_factor": 1.4625,
+        "road_status": "open"
+      },
+      {
+        "u": 26,
+        "v": 19,
+        "distance": 1.365083,
+        "base_travel_time": 2.019846,
+        "congestion_factor": 1.4505,
+        "road_status": "open"
+      },
+      {
+        "u": 26,
+        "v": 35,
+        "distance": 2.52075,
+        "base_travel_time": 1.907411,
+        "congestion_factor": 1.2022,
+        "road_status": "open"
+      },
+      {
+        "u": 27,
+        "v": 34,
+        "distance": 1.120321,
+        "base_travel_time": 1.72569,
+        "congestion_factor": 1.337,
+        "road_status": "open"
+      },
+      {
+        "u": 27,
+        "v": 10,
+        "distance": 3.047808,
+        "base_travel_time": 3.083726,
+        "congestion_factor": 1.7614,
+        "road_status": "open"
+      },
+      {
+        "u": 27,
+        "v": 19,
+        "distance": 2.074071,
+        "base_travel_time": 2.515622,
+        "congestion_factor": 2.1046,
+        "road_status": "open"
+      },
+      {
+        "u": 27,
+        "v": 35,
+        "distance": 3.43314,
+        "base_travel_time": 3.477249,
+        "congestion_factor": 2.138,
+        "road_status": "open"
+      },
+      {
+        "u": 27,
+        "v": 26,
+        "distance": 2.843808,
+        "base_travel_time": 2.630018,
+        "congestion_factor": 2.4944,
+        "road_status": "open"
+      },
+      {
+        "u": 27,
+        "v": 39,
+        "distance": 3.743651,
+        "base_travel_time": 5.194152,
+        "congestion_factor": 1.8647,
+        "road_status": "open"
+      },
+      {
+        "u": 27,
+        "v": 1,
+        "distance": 2.248697,
+        "base_travel_time": 1.800598,
+        "congestion_factor": 1.0431,
+        "road_status": "open"
+      },
+      {
+        "u": 27,
+        "v": 14,
+        "distance": 1.440347,
+        "base_travel_time": 1.71861,
+        "congestion_factor": 1.9301,
+        "road_status": "open"
+      },
+      {
+        "u": 28,
+        "v": 9,
+        "distance": 3.982327,
+        "base_travel_time": 4.074776,
+        "congestion_factor": 1.2382,
+        "road_status": "open"
+      },
+      {
+        "u": 28,
+        "v": 13,
+        "distance": 3.65744,
+        "base_travel_time": 7.120395,
+        "congestion_factor": 2.1072,
+        "road_status": "closed"
+      },
+      {
+        "u": 28,
+        "v": 24,
+        "distance": 3.8257,
+        "base_travel_time": 6.770491,
+        "congestion_factor": 2.4438,
+        "road_status": "open"
+      },
+      {
+        "u": 28,
+        "v": 12,
+        "distance": 0.388712,
+        "base_travel_time": 0.631488,
+        "congestion_factor": 1.9118,
+        "road_status": "open"
+      },
+      {
+        "u": 28,
+        "v": 23,
+        "distance": 1.593281,
+        "base_travel_time": 2.609571,
+        "congestion_factor": 2.2608,
+        "road_status": "open"
+      },
+      {
+        "u": 28,
+        "v": 33,
+        "distance": 3.837147,
+        "base_travel_time": 3.228463,
+        "congestion_factor": 2.3616,
+        "road_status": "open"
+      },
+      {
+        "u": 29,
+        "v": 19,
+        "distance": 2.197408,
+        "base_travel_time": 2.416714,
+        "congestion_factor": 1.4366,
+        "road_status": "open"
+      },
+      {
+        "u": 29,
+        "v": 33,
+        "distance": 2.632621,
+        "base_travel_time": 3.694496,
+        "congestion_factor": 2.0632,
+        "road_status": "open"
+      },
+      {
+        "u": 29,
+        "v": 35,
+        "distance": 1.689888,
+        "base_travel_time": 1.343948,
+        "congestion_factor": 1.5658,
+        "road_status": "open"
+      },
+      {
+        "u": 29,
+        "v": 26,
+        "distance": 2.031977,
+        "base_travel_time": 2.077701,
+        "congestion_factor": 1.4625,
+        "road_status": "open"
+      },
+      {
+        "u": 29,
+        "v": 18,
+        "distance": 3.190923,
+        "base_travel_time": 5.310908,
+        "congestion_factor": 1.811,
+        "road_status": "open"
+      },
+      {
+        "u": 29,
+        "v": 9,
+        "distance": 3.047674,
+        "base_travel_time": 4.002969,
+        "congestion_factor": 2.4076,
+        "road_status": "open"
+      },
+      {
+        "u": 29,
+        "v": 1,
+        "distance": 3.473442,
+        "base_travel_time": 2.76645,
+        "congestion_factor": 1.0588,
+        "road_status": "open"
+      },
+      {
+        "u": 29,
+        "v": 39,
+        "distance": 2.642532,
+        "base_travel_time": 4.398645,
+        "congestion_factor": 1.9685,
+        "road_status": "open"
+      },
+      {
+        "u": 30,
+        "v": 5,
+        "distance": 2.97859,
+        "base_travel_time": 4.846474,
+        "congestion_factor": 1.141,
+        "road_status": "open"
+      },
+      {
+        "u": 30,
+        "v": 7,
+        "distance": 3.456562,
+        "base_travel_time": 2.973324,
+        "congestion_factor": 2.1821,
+        "road_status": "open"
+      },
+      {
+        "u": 30,
+        "v": 36,
+        "distance": 1.054003,
+        "base_travel_time": 1.615943,
+        "congestion_factor": 1.1275,
+        "road_status": "open"
+      },
+      {
+        "u": 31,
+        "v": 25,
+        "distance": 3.51183,
+        "base_travel_time": 5.545768,
+        "congestion_factor": 1.9736,
+        "road_status": "open"
+      },
+      {
+        "u": 31,
+        "v": 37,
+        "distance": 1.566314,
+        "base_travel_time": 1.746504,
+        "congestion_factor": 1.3361,
+        "road_status": "open"
+      },
+      {
+        "u": 31,
+        "v": 2,
+        "distance": 2.100529,
+        "base_travel_time": 3.731835,
+        "congestion_factor": 1.6075,
+        "road_status": "open"
+      },
+      {
+        "u": 31,
+        "v": 6,
+        "distance": 1.458643,
+        "base_travel_time": 2.902568,
+        "congestion_factor": 1.7627,
+        "road_status": "open"
+      },
+      {
+        "u": 31,
+        "v": 32,
+        "distance": 3.959679,
+        "base_travel_time": 4.753265,
+        "congestion_factor": 1.4052,
+        "road_status": "open"
+      },
+      {
+        "u": 31,
+        "v": 0,
+        "distance": 1.805243,
+        "base_travel_time": 2.461177,
+        "congestion_factor": 1.2744,
+        "road_status": "open"
+      },
+      {
+        "u": 32,
+        "v": 37,
+        "distance": 2.610262,
+        "base_travel_time": 3.285245,
+        "congestion_factor": 2.1116,
+        "road_status": "open"
+      },
+      {
+        "u": 32,
+        "v": 5,
+        "distance": 2.450939,
+        "base_travel_time": 3.234351,
+        "congestion_factor": 1.2542,
+        "road_status": "open"
+      },
+      {
+        "u": 32,
+        "v": 31,
+        "distance": 3.959679,
+        "base_travel_time": 4.753265,
+        "congestion_factor": 1.4052,
+        "road_status": "open"
+      },
+      {
+        "u": 32,
+        "v": 36,
+        "distance": 3.885684,
+        "base_travel_time": 5.583322,
+        "congestion_factor": 2.2364,
+        "road_status": "open"
+      },
+      {
+        "u": 33,
+        "v": 24,
+        "distance": 2.55323,
+        "base_travel_time": 3.154061,
+        "congestion_factor": 2.3011,
+        "road_status": "closed"
+      },
+      {
+        "u": 33,
+        "v": 1,
+        "distance": 3.963448,
+        "base_travel_time": 6.297769,
+        "congestion_factor": 2.1298,
+        "road_status": "open"
+      },
+      {
+        "u": 33,
+        "v": 20,
+        "distance": 2.991166,
+        "base_travel_time": 3.763972,
+        "congestion_factor": 2.039,
+        "road_status": "open"
+      },
+      {
+        "u": 33,
+        "v": 35,
+        "distance": 2.350712,
+        "base_travel_time": 4.394267,
+        "congestion_factor": 1.0529,
+        "road_status": "open"
+      },
+      {
+        "u": 33,
+        "v": 23,
+        "distance": 2.294085,
+        "base_travel_time": 1.825795,
+        "congestion_factor": 1.0698,
+        "road_status": "open"
+      },
+      {
+        "u": 33,
+        "v": 29,
+        "distance": 2.632621,
+        "base_travel_time": 3.694496,
+        "congestion_factor": 2.0632,
+        "road_status": "open"
+      },
+      {
+        "u": 33,
+        "v": 19,
+        "distance": 3.933546,
+        "base_travel_time": 3.647723,
+        "congestion_factor": 2.271,
+        "road_status": "open"
+      },
+      {
+        "u": 33,
+        "v": 21,
+        "distance": 3.927538,
+        "base_travel_time": 3.379966,
+        "congestion_factor": 1.1301,
+        "road_status": "open"
+      },
+      {
+        "u": 33,
+        "v": 39,
+        "distance": 2.273838,
+        "base_travel_time": 1.725087,
+        "congestion_factor": 2.0787,
+        "road_status": "open"
+      },
+      {
+        "u": 33,
+        "v": 28,
+        "distance": 3.837147,
+        "base_travel_time": 3.228463,
+        "congestion_factor": 2.3616,
+        "road_status": "open"
+      },
+      {
+        "u": 33,
+        "v": 9,
+        "distance": 0.815806,
+        "base_travel_time": 0.711706,
+        "congestion_factor": 1.089,
+        "road_status": "open"
+      },
+      {
+        "u": 34,
+        "v": 10,
+        "distance": 2.721154,
+        "base_travel_time": 4.10621,
+        "congestion_factor": 1.0663,
+        "road_status": "open"
+      },
+      {
+        "u": 34,
+        "v": 27,
+        "distance": 1.120321,
+        "base_travel_time": 1.72569,
+        "congestion_factor": 1.337,
+        "road_status": "open"
+      },
+      {
+        "u": 34,
+        "v": 19,
+        "distance": 3.182392,
+        "base_travel_time": 3.41105,
+        "congestion_factor": 1.075,
+        "road_status": "closed"
+      },
+      {
+        "u": 34,
+        "v": 26,
+        "distance": 3.796609,
+        "base_travel_time": 5.69747,
+        "congestion_factor": 1.8796,
+        "road_status": "open"
+      },
+      {
+        "u": 34,
+        "v": 1,
+        "distance": 3.179503,
+        "base_travel_time": 2.802808,
+        "congestion_factor": 2.0157,
+        "road_status": "open"
+      },
+      {
+        "u": 34,
+        "v": 14,
+        "distance": 0.677331,
+        "base_travel_time": 0.552784,
+        "congestion_factor": 1.0104,
+        "road_status": "open"
+      },
+      {
+        "u": 35,
+        "v": 9,
+        "distance": 3.096488,
+        "base_travel_time": 3.547966,
+        "congestion_factor": 1.809,
+        "road_status": "open"
+      },
+      {
+        "u": 35,
+        "v": 1,
+        "distance": 1.942169,
+        "base_travel_time": 3.696089,
+        "congestion_factor": 2.14,
+        "road_status": "open"
+      },
+      {
+        "u": 35,
+        "v": 33,
+        "distance": 2.350712,
+        "base_travel_time": 4.394267,
+        "congestion_factor": 1.0529,
+        "road_status": "open"
+      },
+      {
+        "u": 35,
+        "v": 23,
+        "distance": 3.702244,
+        "base_travel_time": 6.624221,
+        "congestion_factor": 1.7978,
+        "road_status": "open"
+      },
+      {
+        "u": 35,
+        "v": 27,
+        "distance": 3.43314,
+        "base_travel_time": 3.477249,
+        "congestion_factor": 2.138,
+        "road_status": "open"
+      },
+      {
+        "u": 35,
+        "v": 39,
+        "distance": 1.025714,
+        "base_travel_time": 0.87896,
+        "congestion_factor": 1.5251,
+        "road_status": "open"
+      },
+      {
+        "u": 35,
+        "v": 29,
+        "distance": 1.689888,
+        "base_travel_time": 1.343948,
+        "congestion_factor": 1.5658,
+        "road_status": "open"
+      },
+      {
+        "u": 35,
+        "v": 19,
+        "distance": 1.628109,
+        "base_travel_time": 2.140179,
+        "congestion_factor": 1.5945,
+        "road_status": "open"
+      },
+      {
+        "u": 35,
+        "v": 26,
+        "distance": 2.52075,
+        "base_travel_time": 1.907411,
+        "congestion_factor": 1.2022,
+        "road_status": "open"
+      },
+      {
+        "u": 35,
+        "v": 38,
+        "distance": 3.60504,
+        "base_travel_time": 3.942097,
+        "congestion_factor": 1.1052,
+        "road_status": "open"
+      },
+      {
+        "u": 36,
+        "v": 30,
+        "distance": 1.054003,
+        "base_travel_time": 1.615943,
+        "congestion_factor": 1.1275,
+        "road_status": "open"
+      },
+      {
+        "u": 36,
+        "v": 32,
+        "distance": 3.885684,
+        "base_travel_time": 5.583322,
+        "congestion_factor": 2.2364,
+        "road_status": "open"
+      },
+      {
+        "u": 36,
+        "v": 5,
+        "distance": 1.939504,
+        "base_travel_time": 1.876714,
+        "congestion_factor": 1.956,
+        "road_status": "open"
+      },
+      {
+        "u": 36,
+        "v": 7,
+        "distance": 3.799049,
+        "base_travel_time": 3.105345,
+        "congestion_factor": 1.5086,
+        "road_status": "open"
+      },
+      {
+        "u": 37,
+        "v": 32,
+        "distance": 2.610262,
+        "base_travel_time": 3.285245,
+        "congestion_factor": 2.1116,
+        "road_status": "open"
+      },
+      {
+        "u": 37,
+        "v": 0,
+        "distance": 1.866006,
+        "base_travel_time": 2.516911,
+        "congestion_factor": 2.0031,
+        "road_status": "open"
+      },
+      {
+        "u": 37,
+        "v": 31,
+        "distance": 1.566314,
+        "base_travel_time": 1.746504,
+        "congestion_factor": 1.3361,
+        "road_status": "open"
+      },
+      {
+        "u": 37,
+        "v": 2,
+        "distance": 1.814,
+        "base_travel_time": 1.73847,
+        "congestion_factor": 1.5528,
+        "road_status": "open"
+      },
+      {
+        "u": 37,
+        "v": 6,
+        "distance": 2.721375,
+        "base_travel_time": 4.590522,
+        "congestion_factor": 2.1051,
+        "road_status": "open"
+      },
+      {
+        "u": 38,
+        "v": 10,
+        "distance": 3.589058,
+        "base_travel_time": 3.266384,
+        "congestion_factor": 1.3539,
+        "road_status": "open"
+      },
+      {
+        "u": 38,
+        "v": 39,
+        "distance": 2.69487,
+        "base_travel_time": 4.469532,
+        "congestion_factor": 1.3259,
+        "road_status": "open"
+      },
+      {
+        "u": 38,
+        "v": 23,
+        "distance": 3.645154,
+        "base_travel_time": 3.656296,
+        "congestion_factor": 1.1685,
+        "road_status": "open"
+      },
+      {
+        "u": 38,
+        "v": 4,
+        "distance": 1.714909,
+        "base_travel_time": 2.113155,
+        "congestion_factor": 1.4163,
+        "road_status": "open"
+      },
+      {
+        "u": 38,
+        "v": 17,
+        "distance": 1.298503,
+        "base_travel_time": 1.03168,
+        "congestion_factor": 1.7925,
+        "road_status": "open"
+      },
+      {
+        "u": 38,
+        "v": 13,
+        "distance": 1.173339,
+        "base_travel_time": 1.370759,
+        "congestion_factor": 1.6163,
+        "road_status": "open"
+      },
+      {
+        "u": 38,
+        "v": 35,
+        "distance": 3.60504,
+        "base_travel_time": 3.942097,
+        "congestion_factor": 1.1052,
+        "road_status": "open"
+      },
+      {
+        "u": 38,
+        "v": 1,
+        "distance": 2.399109,
+        "base_travel_time": 2.865304,
+        "congestion_factor": 2.2126,
+        "road_status": "open"
+      },
+      {
+        "u": 38,
+        "v": 3,
+        "distance": 3.434314,
+        "base_travel_time": 2.706861,
+        "congestion_factor": 1.5585,
+        "road_status": "open"
+      },
+      {
+        "u": 39,
+        "v": 26,
+        "distance": 3.472493,
+        "base_travel_time": 4.056095,
+        "congestion_factor": 1.8769,
+        "road_status": "open"
+      },
+      {
+        "u": 39,
+        "v": 19,
+        "distance": 2.365997,
+        "base_travel_time": 3.599793,
+        "congestion_factor": 2.0725,
+        "road_status": "open"
+      },
+      {
+        "u": 39,
+        "v": 38,
+        "distance": 2.69487,
+        "base_travel_time": 4.469532,
+        "congestion_factor": 1.3259,
+        "road_status": "open"
+      },
+      {
+        "u": 39,
+        "v": 17,
+        "distance": 3.893337,
+        "base_travel_time": 3.865241,
+        "congestion_factor": 2.4322,
+        "road_status": "open"
+      },
+      {
+        "u": 39,
+        "v": 1,
+        "distance": 1.71091,
+        "base_travel_time": 3.356505,
+        "congestion_factor": 2.398,
+        "road_status": "open"
+      },
+      {
+        "u": 39,
+        "v": 9,
+        "distance": 3.089237,
+        "base_travel_time": 2.417183,
+        "congestion_factor": 1.8196,
+        "road_status": "open"
+      },
+      {
+        "u": 39,
+        "v": 13,
+        "distance": 3.504486,
+        "base_travel_time": 4.440246,
+        "congestion_factor": 1.424,
+        "road_status": "open"
+      },
+      {
+        "u": 39,
+        "v": 35,
+        "distance": 1.025714,
+        "base_travel_time": 0.87896,
+        "congestion_factor": 1.5251,
+        "road_status": "open"
+      },
+      {
+        "u": 39,
+        "v": 27,
+        "distance": 3.743651,
+        "base_travel_time": 5.194152,
+        "congestion_factor": 1.8647,
+        "road_status": "open"
+      },
+      {
+        "u": 39,
+        "v": 33,
+        "distance": 2.273838,
+        "base_travel_time": 1.725087,
+        "congestion_factor": 2.0787,
+        "road_status": "open"
+      },
+      {
+        "u": 39,
+        "v": 23,
+        "distance": 2.940428,
+        "base_travel_time": 5.365341,
+        "congestion_factor": 2.3677,
+        "road_status": "open"
+      },
+      {
+        "u": 39,
+        "v": 29,
+        "distance": 2.642532,
+        "base_travel_time": 4.398645,
+        "congestion_factor": 1.9685,
+        "road_status": "open"
+      }
+    ]
+  },
+  "vehicles": [
+    {
+      "vehicle_id": 0,
+      "capacity": 25.9709,
+      "depot_node": 0
+    },
+    {
+      "vehicle_id": 1,
+      "capacity": 25.9709,
+      "depot_node": 1
+    },
+    {
+      "vehicle_id": 2,
+      "capacity": 25.9709,
+      "depot_node": 0
+    },
+    {
+      "vehicle_id": 3,
+      "capacity": 25.9709,
+      "depot_node": 1
+    }
+  ],
+  "customers": [
+    {
+      "customer_id": 0,
+      "location_node": 5,
+      "demand": 7.5732
+    },
+    {
+      "customer_id": 1,
+      "location_node": 4,
+      "demand": 7.9561
+    },
+    {
+      "customer_id": 2,
+      "location_node": 25,
+      "demand": 1.5982
+    },
+    {
+      "customer_id": 3,
+      "location_node": 39,
+      "demand": 1.9455
+    },
+    {
+      "customer_id": 4,
+      "location_node": 37,
+      "demand": 4.5109
+    },
+    {
+      "customer_id": 5,
+      "location_node": 9,
+      "demand": 3.9348
+    },
+    {
+      "customer_id": 6,
+      "location_node": 15,
+      "demand": 3.2652
+    },
+    {
+      "customer_id": 7,
+      "location_node": 30,
+      "demand": 8.5863
+    },
+    {
+      "customer_id": 8,
+      "location_node": 34,
+      "demand": 1.0636
+    },
+    {
+      "customer_id": 9,
+      "location_node": 20,
+      "demand": 2.6299
+    },
+    {
+      "customer_id": 10,
+      "location_node": 16,
+      "demand": 6.7446
+    },
+    {
+      "customer_id": 11,
+      "location_node": 18,
+      "demand": 5.3088
+    },
+    {
+      "customer_id": 12,
+      "location_node": 12,
+      "demand": 5.5103
+    },
+    {
+      "customer_id": 13,
+      "location_node": 33,
+      "demand": 7.1285
+    },
+    {
+      "customer_id": 14,
+      "location_node": 35,
+      "demand": 1.4999
+    }
+  ]
+}

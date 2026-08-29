@@ -1,4 +1,4 @@
-# Milestone 11 — Benchmark Plan & Phase 1 Implementation Status
+# Milestone 11 — Benchmark Plan & Phase 1–3 Implementation Status
 
 ## Executive Summary
 This document tracks the execution of **Milestone 11 (Benchmarking, Algorithm Comparison, Convergence Evaluation, Scalability, and Reproducible Experimentation)**.
@@ -57,48 +57,83 @@ The M10 frontend and M2–M9 backend architectures are fully functioning, verifi
 
 ## 4. Phase 1 Implementation Status: Comparator Algorithms Suite (Complete)
 
-The comparator algorithms suite has been implemented in [`experiments/comparators/`](file:///c:/git/Q-Route/experiments/comparators/) and verified through dedicated unit tests.
+The comparator algorithms suite is implemented in [`experiments/comparators/`](file:///c:/git/Q-Route/experiments/comparators/) and verified through dedicated unit tests.
 
 ### Implemented Comparators:
-1. **Classical PSO ([`classical_pso.py`](file:///c:/git/Q-Route/experiments/comparators/classical_pso.py))**:
-   - Standard velocity & position update mechanism with inertia weight ($w = 0.7298$) and acceleration coefficients ($c_1 = 1.49618, c_2 = 1.49618$).
-   - Reuses priority-key encoding and canonical decoding pipeline.
-2. **Genetic Algorithm ([`genetic_algorithm.py`](file:///c:/git/Q-Route/experiments/comparators/genetic_algorithm.py))**:
-   - Generational GA with tournament selection ($k=3$), arithmetic/SBX crossover ($p_c = 0.85$), Gaussian mutation ($p_m = 0.15$), and elitism ($K=2$).
-3. **Simulated Annealing ([`simulated_annealing.py`](file:///c:/git/Q-Route/experiments/comparators/simulated_annealing.py))**:
-   - Metropolis acceptance criterion with perturbation, customer-swap, and inversion neighborhood moves, governed by geometric cooling ($T_{k+1} = \alpha T_k$).
-4. **Exact / Exhaustive Combinatorial Solver ([`exact_solver.py`](file:///c:/git/Q-Route/experiments/comparators/exact_solver.py))**:
-   - Complete permutation and multi-vehicle partition enumeration for small instances ($N \le 8$).
-   - Safety guard: Explicitly raises `ValueError` if $N > 8$ to prevent combinatorial explosion.
-5. **Common Protocol & Result Schema ([`common.py`](file:///c:/git/Q-Route/experiments/comparators/common.py))**:
-   - `ComparatorResult` exposing `algorithm_name`, `best_solution`, `best_fitness`, `convergence_history`, `runtime_seconds`, `is_feasible`, `seed`, `iterations_completed`.
-   - `evaluate_particle` helper ensuring identical decoding, capacity repair, 2-opt, and fitness scoring.
+1. **Classical PSO ([`classical_pso.py`](file:///c:/git/Q-Route/experiments/comparators/classical_pso.py))**: Standard velocity & position update mechanism ($w = 0.7298, c_1 = 1.49618, c_2 = 1.49618$).
+2. **Genetic Algorithm ([`genetic_algorithm.py`](file:///c:/git/Q-Route/experiments/comparators/genetic_algorithm.py))**: Generational GA with tournament selection ($k=3$), arithmetic/SBX crossover ($p_c = 0.85$), Gaussian mutation ($p_m = 0.15$), and elitism ($K=2$).
+3. **Simulated Annealing ([`simulated_annealing.py`](file:///c:/git/Q-Route/experiments/comparators/simulated_annealing.py))**: Metropolis acceptance with perturbation, swap, and inversion neighborhood moves, governed by geometric cooling.
+4. **Exact / Exhaustive Combinatorial Solver ([`exact_solver.py`](file:///c:/git/Q-Route/experiments/comparators/exact_solver.py))**: Complete permutation and multi-vehicle partition enumeration for small instances ($N \le 8$), with safety guard against $N > 8$.
+5. **Common Protocol & Result Schema ([`common.py`](file:///c:/git/Q-Route/experiments/comparators/common.py))**: Standard `ComparatorResult` and `evaluate_particle` helper.
+
+---
+
+## 5. Phase 2 Implementation Status: Standardized Benchmark Instances Suite (Complete)
+
+The benchmark-instance layer is implemented in [`experiments/benchmarks/`](file:///c:/git/Q-Route/experiments/benchmarks/) and datasets are generated under [`data/benchmarks/`](file:///c:/git/Q-Route/data/benchmarks/).
+
+### Benchmark Scale Definitions:
+| Size | Customers ($N$) | Vehicles ($V$) | Nodes ($M$) | Depots ($D$) | Radius (km) | Grid Size (km) | Description |
+|---|---|---|---|---|---|---|---|
+| **SMALL** | 6 | 2 | 20 | 1 | 3.5 | 10.0 | Rapid convergence & exact solver baseline |
+| **MEDIUM** | 15 | 4 | 40 | 2 | 4.0 | 15.0 | Multi-depot intermediate operational tier |
+| **LARGE** | 30 | 6 | 80 | 3 | 4.5 | 20.0 | Enterprise fleet distribution scale |
+| **STRESS** | 50 | 10 | 120 | 4 | 5.0 | 25.0 | High-density metropolitan scalability stress test |
+
+### Deterministic Seed Scheme:
+- **Seed Array**: `BENCHMARK_SEEDS = [42, 43, 44, 45, 46]` (5 reproducible trials per scale).
+- **Total Generated Instances**: 20 standardized VRP instances in `data/benchmarks/{size}_seed_{seed}.json`.
+- **Manifest**: Machine-readable specification index at [`data/benchmarks/manifest.json`](file:///c:/git/Q-Route/data/benchmarks/manifest.json).
+
+---
+
+## 6. Phase 3 Implementation Status: Unified Benchmark Runner (Complete)
+
+The unified benchmark execution framework is implemented under [`experiments/benchmarks/`](file:///c:/git/Q-Route/experiments/benchmarks/) and validated.
+
+### Architecture & Capabilities:
+1. **Algorithm Adapter ([`adapters.py`](file:///c:/git/Q-Route/experiments/benchmarks/adapters.py))**:
+   - `AlgorithmAdapter.run_trial()` wraps `QPSO`, `Classical_PSO`, `Genetic_Algorithm`, `Simulated_Annealing`, and `Exact_Brute_Force` under a standardized signature.
+   - Computes total travel time, total distance, total congestion, and constraint violations for all solutions.
+   - Captures iteration-by-iteration convergence histories.
+   - Enforces complete error isolation: trial exceptions are caught and recorded as `status="ERROR"` with `error_type` and `error_message`, preventing suite crashes.
+2. **Benchmark Runner ([`runner.py`](file:///c:/git/Q-Route/experiments/benchmarks/runner.py))**:
+   - Executes multi-trial benchmark matrices (`instances` $\times$ `algorithms` $\times$ `trials`).
+   - Dynamic instance loading from `data/benchmarks/` with on-the-fly generation fallback.
+   - Safety guard: Automatically skips `Exact_Brute_Force` for instances with $N > 8$.
+   - Structured Multi-Artifact Export:
+     - [`results/benchmarks/benchmark_results.csv`](file:///c:/git/Q-Route/results/benchmarks/benchmark_results.csv): Flat per-trial tabular metrics.
+     - [`results/benchmarks/benchmark_results.json`](file:///c:/git/Q-Route/results/benchmarks/benchmark_results.json): Full execution metadata and trial records.
+     - [`results/benchmarks/convergence_histories.json`](file:///c:/git/Q-Route/results/benchmarks/convergence_histories.json): Normalized convergence trajectory curves.
+3. **CLI Entry Point ([`run_benchmark.py`](file:///c:/git/Q-Route/experiments/benchmarks/run_benchmark.py))**:
+   - Command-line runner supporting `--instances`, `--algorithms`, `--trials`, `--iterations`, `--particles`, `--time-budget`, `--seed`, and `--out-dir`.
 
 ### Verification Results:
-- **Dedicated Comparator Tests**: `8 passed in 5.82s` ([`backend/tests/test_comparators.py`](file:///c:/git/Q-Route/backend/tests/test_comparators.py)).
-- **Full Backend Regression Suite**: `359 passed in 21.85s`.
-- **Zero Modifications**: `app/qpso/*`, `objective.py`, `feasibility.py`, and `frontend/*` remain completely untouched.
+- **Phase 3 Test Suite**: `8 passed in 20.99s` ([`backend/tests/test_benchmark_runner.py`](file:///c:/git/Q-Route/backend/tests/test_benchmark_runner.py)).
+- **Smoke Benchmark**: `4/4 trials succeeded in 20.06s` (`python -m experiments.benchmarks.run_benchmark --instances small_seed_42 --algorithms QPSO,Classical_PSO --trials 2`).
+- **Full Backend Regression Suite**: `375 passed in 49.06s`.
+- **Protected Files Invariance**: `app/qpso/*`, `objective.py`, `feasibility.py`, `frontend/*`, and `comparators/*` remain untouched.
 - **Zero New Dependencies Added**.
 
 ---
 
-## 5. M11 Requirement Matrix
+## 7. M11 Requirement Matrix
 
 | Requirement | Description | Status | Notes |
 |---|---|---|---|
-| **A. QPSO Baseline** | Discrete Quantum PSO solver with repair + 2-opt | **Already Exists** | Fully implemented in `app.qpso.optimizer` |
-| **B. Conventional Metaheuristics** | Classical PSO, Genetic Algorithm (GA), Simulated Annealing (SA) | **Completed (Phase 1)** | Implemented in `experiments/comparators/` |
-| **C. Exact Method** | Optimal baseline for small instances (Branch-and-Bound / Brute-force ILP) | **Completed (Phase 1)** | Implemented in `experiments/comparators/exact_solver.py` |
-| **D. Multiple Problem Sizes** | Small ($N=6$), Medium ($N=15$), Large ($N=30$), Stress ($N=50+$) | **Pending Phase 2** | Standardized benchmark instance sets needed |
-| **E. Stochastic Trials** | Multi-seed runs (e.g. 10–30 runs/config) with Mean, Std, Min, Max | **Pending Phase 3** | Benchmark runner required |
-| **F. Fitness Comparison** | Objective score comparison across algorithms | **Pending Phase 3** | Raw CSV & statistical summary needed |
-| **G. Distance Comparison** | Total route distance (km) metric | **Pending Phase 3** | Metric extraction required |
-| **H. Travel-Time Comparison** | Total effective travel time (min) metric | **Pending Phase 3** | Metric extraction required |
-| **I. Congestion Comparison** | Congestion penalty avoidance metric | **Pending Phase 3** | Metric extraction required |
-| **J. Runtime Comparison** | CPU wall-clock execution time (ms) | **Pending Phase 3** | High-resolution timing needed |
-| **K. Convergence Comparison** | Iteration-by-iteration fitness trajectories | **Pending Phase 4** | Trajectory plotting needed |
-| **L. Scalability Analysis** | Solution quality vs runtime scaling as customer/node counts grow | **Pending Phase 4** | Scaling experiment suite needed |
-| **M. Reproducible Seeds** | Deterministic experiment generation | **Completed (Phase 1)** | Deterministic seeded RNG across all comparators |
-| **N. CSV/JSON Raw Results** | Structured output logs in `results/` | **Pending Phase 4** | Data export pipeline needed |
+| **A. QPSO Baseline** | Discrete Quantum PSO solver with repair + 2-opt | **Already Exists** | Fully integrated in benchmark runner |
+| **B. Conventional Metaheuristics** | Classical PSO, Genetic Algorithm (GA), Simulated Annealing (SA) | **Completed (Phase 1)** | Fully integrated in benchmark runner |
+| **C. Exact Method** | Optimal baseline for small instances (Branch-and-Bound / Brute-force ILP) | **Completed (Phase 1)** | Integrated with $N \le 8$ safety guard |
+| **D. Multiple Problem Sizes** | Small ($N=6$), Medium ($N=15$), Large ($N=30$), Stress ($N=50+$) | **Completed (Phase 2)** | 20 instances generated in `data/benchmarks/` |
+| **E. Stochastic Trials** | Multi-seed runs (e.g. 10–30 runs/config) with Mean, Std, Min, Max | **Completed (Phase 3)** | Supported via `--trials` & seed offsets |
+| **F. Fitness Comparison** | Objective score comparison across algorithms | **Completed (Phase 3)** | Captured in CSV & JSON results |
+| **G. Distance Comparison** | Total route distance (km) metric | **Completed (Phase 3)** | Captured in CSV & JSON results |
+| **H. Travel-Time Comparison** | Total effective travel time (min) metric | **Completed (Phase 3)** | Captured in CSV & JSON results |
+| **I. Congestion Comparison** | Congestion penalty avoidance metric | **Completed (Phase 3)** | Captured in CSV & JSON results |
+| **J. Runtime Comparison** | CPU wall-clock execution time (ms) | **Completed (Phase 3)** | High-resolution timing captured |
+| **K. Convergence Comparison** | Iteration-by-iteration fitness trajectories | **Completed (Phase 3)** | Exported in `convergence_histories.json` |
+| **L. Scalability Analysis** | Solution quality vs runtime scaling as customer/node counts grow | **Pending Phase 4** | Analysis & plot generation needed |
+| **M. Reproducible Seeds** | Deterministic experiment generation | **Completed (Phase 2)** | Seed parameterization across all trials |
+| **N. CSV/JSON Raw Results** | Structured output logs in `results/` | **Completed (Phase 3)** | CSV, JSON, and convergence files exported |
 | **O. Benchmark Visualizations** | Comparative convergence, boxplots, scaling curves | **Pending Phase 4** | Plot generation script needed |
 | **P. Incident Rerouting Evaluation** | Dynamic selective re-optimization vs full re-solve benchmark | **Pending Phase 5** | Incident benchmark needed |

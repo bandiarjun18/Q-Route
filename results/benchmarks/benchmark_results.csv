@@ -1,0 +1,5 @@
+algorithm,instance_id,trial_id,random_seed,status,runtime_seconds,iterations_completed,best_objective,is_feasible,total_distance,total_travel_time,total_congestion,n_violations,error_type,timestamp
+QPSO,small_seed_42,1,42,SUCCESS,5.532393,20,78.6381,True,33.5079,58.9857,9.6614,0,,2026-08-29T08:07:07.240942+00:00
+QPSO,small_seed_42,2,142,SUCCESS,3.276823,20,78.6381,True,33.5079,58.9857,9.6614,0,,2026-08-29T08:07:10.517953+00:00
+Classical_PSO,small_seed_42,1,42,SUCCESS,7.869016,20,83.2166,True,36.4269,62.4262,8.5899,0,,2026-08-29T08:07:18.387275+00:00
+Classical_PSO,small_seed_42,2,142,SUCCESS,3.342035,20,78.6381,True,33.5079,58.9857,9.6614,0,,2026-08-29T08:07:21.729863+00:00
