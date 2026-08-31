@@ -29,6 +29,20 @@ from .osm import (
     osm_to_network_dict,
     load_osm_network,
 )
+from .osm_client import (
+    BoundingBox,
+    OSMClientConfig,
+    OSMClient,
+    OSMClientError,
+    OSMInvalidBoundingBoxError,
+    OSMNetworkError,
+    OSMTimeoutError,
+    OSMHTTPError,
+    OSMResponseError,
+    build_overpass_query,
+    fetch_osm_from_bbox,
+    load_osm_from_bbox,
+)
 
 __all__ = [
     # Model
@@ -42,7 +56,7 @@ __all__ = [
     # Pathfinding
     "shortest_path",
     "path_cost",
-    # OSM Ingestion
+    # OSM Ingestion (M13.1)
     "OSMConfig",
     "OSMIngestionError",
     "OSMParseError",
@@ -55,4 +69,17 @@ __all__ = [
     "parse_osm_json",
     "osm_to_network_dict",
     "load_osm_network",
+    # OSM Acquisition Client (M13.2)
+    "BoundingBox",
+    "OSMClientConfig",
+    "OSMClient",
+    "OSMClientError",
+    "OSMInvalidBoundingBoxError",
+    "OSMNetworkError",
+    "OSMTimeoutError",
+    "OSMHTTPError",
+    "OSMResponseError",
+    "build_overpass_query",
+    "fetch_osm_from_bbox",
+    "load_osm_from_bbox",
 ]
