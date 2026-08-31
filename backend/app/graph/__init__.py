@@ -15,6 +15,20 @@ from .generator import (
     build_transport_graph,
 )
 from .pathfinding import shortest_path, path_cost
+from .osm import (
+    OSMConfig,
+    OSMIngestionError,
+    OSMParseError,
+    OSMInvalidDataError,
+    OSMEmptyNetworkError,
+    haversine_distance,
+    parse_maxspeed,
+    calculate_travel_time_minutes,
+    parse_osm_xml,
+    parse_osm_json,
+    osm_to_network_dict,
+    load_osm_network,
+)
 
 __all__ = [
     # Model
@@ -28,4 +42,17 @@ __all__ = [
     # Pathfinding
     "shortest_path",
     "path_cost",
+    # OSM Ingestion
+    "OSMConfig",
+    "OSMIngestionError",
+    "OSMParseError",
+    "OSMInvalidDataError",
+    "OSMEmptyNetworkError",
+    "haversine_distance",
+    "parse_maxspeed",
+    "calculate_travel_time_minutes",
+    "parse_osm_xml",
+    "parse_osm_json",
+    "osm_to_network_dict",
+    "load_osm_network",
 ]
