@@ -6,11 +6,12 @@ import { ActiveRoutesList } from '../components/routes/ActiveRoutesList.jsx'
 import { RouteVisualizationCanvas } from '../components/routes/RouteVisualizationCanvas.jsx'
 import { SelectedRouteDetails } from '../components/routes/SelectedRouteDetails.jsx'
 import { RefreshIcon } from '../components/common/Icons.jsx'
-import { getCurrentRoutes } from '../api/qroute.js'
+import { getCurrentRoutes, getGeographicRoutes } from '../api/qroute.js'
 import { networkPreviewData } from '../data/dashboardData.js'
 
 export function LiveRoutes() {
   const [routesData, setRoutesData] = useState(null)
+  const [geoData, setGeoData] = useState(null)
   const [selectedVehicleId, setSelectedVehicleId] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState(null)
@@ -20,56 +21,86 @@ export function LiveRoutes() {
     setError(null)
 
     try {
-      const data = await getCurrentRoutes()
-      setRoutesData(data)
-      if (data?.routes?.length > 0) {
-        setSelectedVehicleId((prev) => {
-          const exists = data.routes.some((r) => r.vehicle_id === prev)
-          return exists ? prev : data.routes[0].vehicle_id
-        })
+      const [routesRes, geoRes] = await Promise.allSettled([
+        getCurrentRoutes(),
+        getGeographicRoutes(),
+      ])
+
+      if (routesRes.status === 'fulfilled') {
+        const data = routesRes.value
+        setRoutesData(data)
+        if (data?.routes?.length > 0) {
+          setSelectedVehicleId((prev) => {
+            const exists = data.routes.some((r) => r.vehicle_id === prev)
+            return exists ? prev : data.routes[0].vehicle_id
+          })
+        } else {
+          setSelectedVehicleId(null)
+        }
       } else {
-        setSelectedVehicleId(null)
+        const err = routesRes.reason
+        if (err?.message?.includes('409') || err?.message?.toLowerCase().includes('not configured')) {
+          setRoutesData({ total_active: 0, routes: [] })
+        } else {
+          setError(err?.message || 'Failed to retrieve active routes from backend API.')
+        }
+      }
+
+      if (geoRes.status === 'fulfilled') {
+        setGeoData(geoRes.value)
+      } else {
+        setGeoData(null)
       }
     } catch (err) {
-      if (err?.message?.includes('409') || err?.message?.toLowerCase().includes('not configured')) {
-        setRoutesData({ total_active: 0, routes: [] })
-      } else {
-        setError(err?.message || 'Failed to retrieve active routes from backend API.')
-      }
+      setError(err?.message || 'Failed to retrieve active routes from backend API.')
     } finally {
       setIsLoading(false)
     }
   }, [])
 
   useEffect(() => {
-    let mounted = true
-    const init = async () => {
+    let ignore = false
+    const load = async () => {
       setIsLoading(true)
       try {
-        const data = await getCurrentRoutes()
-        if (mounted) {
-          setRoutesData(data)
-          if (data?.routes?.length > 0) {
-            setSelectedVehicleId(data.routes[0].vehicle_id)
+        const [routesRes, geoRes] = await Promise.allSettled([
+          getCurrentRoutes(),
+          getGeographicRoutes(),
+        ])
+        if (!ignore) {
+          if (routesRes.status === 'fulfilled') {
+            const data = routesRes.value
+            setRoutesData(data)
+            if (data?.routes?.length > 0) {
+              setSelectedVehicleId(data.routes[0].vehicle_id)
+            }
+          } else {
+            const err = routesRes.reason
+            if (err?.message?.includes('409') || err?.message?.toLowerCase().includes('not configured')) {
+              setRoutesData({ total_active: 0, routes: [] })
+            } else {
+              setError(err?.message || 'Failed to retrieve active routes from backend API.')
+            }
+          }
+          if (geoRes.status === 'fulfilled') {
+            setGeoData(geoRes.value)
           }
         }
       } catch (err) {
-        if (mounted) {
-          if (err?.message?.includes('409') || err?.message?.toLowerCase().includes('not configured')) {
-            setRoutesData({ total_active: 0, routes: [] })
-          } else {
-            setError(err?.message || 'Failed to retrieve active routes from backend API.')
-          }
+        if (!ignore) {
+          setError(err?.message || 'Failed to retrieve active routes from backend API.')
         }
       } finally {
-        if (mounted) setIsLoading(false)
+        if (!ignore) setIsLoading(false)
       }
     }
-    init()
+    load()
     return () => {
-      mounted = false
+      ignore = true
     }
   }, [])
+
+
 
   const routes = routesData?.routes || []
   const selectedRoute = routes.find((r) => r.vehicle_id === selectedVehicleId)
@@ -121,8 +152,11 @@ export function LiveRoutes() {
         <RouteVisualizationCanvas
           networkData={networkPreviewData}
           routes={routes}
+          geoData={geoData}
           selectedVehicleId={selectedVehicleId}
+          onSelectVehicle={setSelectedVehicleId}
         />
+
       </div>
 
       {/* 4. Full-Width Selected Route Details */}

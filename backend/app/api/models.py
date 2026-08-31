@@ -46,6 +46,8 @@ class NodeOut(BaseModel):
     node_type: str
     x: float
     y: float
+    lat: Optional[float] = None
+    lon: Optional[float] = None
 
 
 class EdgeOut(BaseModel):
@@ -128,6 +130,8 @@ class RouteOut(BaseModel):
     total_distance: float
     total_travel_time: float
     estimated_arrival: Optional[float]
+    geometry: Optional[list[list[float]]] = None
+
 
 
 class FitnessBreakdown(BaseModel):
@@ -229,3 +233,50 @@ class ConvergenceResponse(BaseModel):
     best_fitness: float
     stopped_early: bool
     history: list[ConvergencePoint]
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# Geographic Map Visualization (Milestone 13.6)
+# ═══════════════════════════════════════════════════════════════════════════
+
+class GeographicRouteOut(BaseModel):
+    """Geographic route trajectory representation with ordered lat/lon coordinates."""
+    vehicle_id: Any
+    depot_node: Any
+    visit_order: list[Any]
+    node_sequence: list[Any]
+    total_distance: float
+    total_travel_time: float
+    estimated_arrival: Optional[float]
+    coordinates: list[list[float]] = Field(
+        default_factory=list,
+        description="Ordered sequence of [latitude, longitude] pairs",
+    )
+
+
+class GeographicDepotOut(BaseModel):
+    """Geographic depot marker."""
+    id: Any
+    latitude: float
+    longitude: float
+
+
+class GeographicCustomerOut(BaseModel):
+    """Geographic customer marker."""
+    id: Any
+    location_node: Any
+    latitude: float
+    longitude: float
+    demand: float
+
+
+class GeographicVisualizationResponse(BaseModel):
+    """Response from GET /routes/geographic."""
+    is_geographic: bool
+    center: Optional[list[float]] = Field(
+        default=None,
+        description="[latitude, longitude] center of the bounding box",
+    )
+    depots: list[GeographicDepotOut] = Field(default_factory=list)
+    customers: list[GeographicCustomerOut] = Field(default_factory=list)
+    routes: list[GeographicRouteOut] = Field(default_factory=list)

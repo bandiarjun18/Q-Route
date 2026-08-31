@@ -25,6 +25,7 @@ from sqlalchemy.orm import Session
 from app.api.dependencies import require_problem
 from app.api.models import OptimizeRequest, OptimizeResponse, RouteOut
 from app.api.state import AppState
+from app.api.routes.current import _build_route_out
 from app.db.crud import get_active_network, save_optimization_run
 from app.db.session import get_db
 from app.graph.model import TransportGraph
@@ -38,19 +39,6 @@ from app.vrp.objective import FitnessWeights
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/optimize", tags=["Optimize"])
-
-
-def _build_route_out(ar: ActiveRoute) -> RouteOut:
-    """Convert an ActiveRoute to the API response model."""
-    return RouteOut(
-        vehicle_id=ar.vehicle_id,
-        depot_node=ar.depot_node,
-        visit_order=list(ar.visit_order),
-        node_sequence=list(ar.node_sequence),
-        total_distance=ar.total_distance,
-        total_travel_time=ar.total_travel_time,
-        estimated_arrival=ar.estimated_arrival,
-    )
 
 
 def _build_route_manager(solution: VRPSolution, tg: TransportGraph) -> RouteManager:
@@ -141,7 +129,8 @@ def run_optimization(
 
     # ── Build response ───────────────────────────────────────────────────
     active_routes = rm.list_active()
-    routes_out = [_build_route_out(ar) for ar in active_routes]
+    routes_out = [_build_route_out(ar, graph) for ar in active_routes]
+
 
     # ── Persist to PostgreSQL ────────────────────────────────────────────
     try:

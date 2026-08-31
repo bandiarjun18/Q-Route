@@ -105,9 +105,12 @@ def create_network(
             node_type=d.get("node_type", "intersection"),
             x=float(d.get("x", 0.0)),
             y=float(d.get("y", 0.0)),
+            lat=float(d["lat"]) if "lat" in d and d["lat"] is not None else None,
+            lon=float(d["lon"]) if "lon" in d and d["lon"] is not None else None,
         )
         for n, d in g.nodes(data=True)
     ]
+
     edges_out = [
         EdgeOut(
             u=u,

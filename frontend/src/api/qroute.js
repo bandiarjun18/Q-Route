@@ -132,6 +132,14 @@ export async function getConvergenceHistory() {
   return handleResponse(res)
 }
 
+/**
+ * Retrieve geographic route geometries, depots, and customer delivery points (GET /routes/geographic)
+ */
+export async function getGeographicRoutes() {
+  const res = await fetch(`${BASE_URL}/routes/geographic`)
+  return handleResponse(res)
+}
+
 export default {
   healthCheck,
   createNetwork,
@@ -140,4 +148,5 @@ export default {
   getCurrentRoutes,
   registerIncident,
   getConvergenceHistory,
+  getGeographicRoutes,
 }

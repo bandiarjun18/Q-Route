@@ -1,17 +1,23 @@
 import { useState } from 'react'
+
 import { useNavigate } from 'react-router-dom'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../ui/Card.jsx'
 import { Button } from '../ui/Button.jsx'
 import { Badge } from '../ui/Badge.jsx'
 import { RoutesIcon, MapPinIcon } from '../common/Icons.jsx'
+import { OSMMapView } from './OSMMapView.jsx'
 
 export function RouteVisualizationCanvas({
   networkData,
   routes = [],
+  geoData = null,
   selectedVehicleId,
+  onSelectVehicle,
 }) {
   const navigate = useNavigate()
+  const [userViewMode, setUserViewMode] = useState(null)
   const [zoomLevel, setZoomLevel] = useState(1)
+  const viewMode = userViewMode !== null ? userViewMode : (geoData?.is_geographic ? 'map' : 'canvas')
 
   const nodes = networkData?.nodes || []
   const edges = networkData?.edges || []
@@ -58,18 +64,46 @@ export function RouteVisualizationCanvas({
         <div>
           <CardTitle>Route Visualization</CardTitle>
           <CardDescription>
-            Spatial network map with multi-vehicle path overlays
+            Interactive OpenStreetMap & topological path overlays
           </CardDescription>
         </div>
 
         <div className="flex items-center gap-2">
+          {/* Mode Switcher */}
+          <div className="flex items-center bg-slate-900 border border-slate-800 rounded-lg p-0.5 text-xs">
+            <button
+              type="button"
+              onClick={() => setUserViewMode('map')}
+              className={`px-2.5 py-1 rounded-md transition-colors cursor-pointer font-medium ${
+                viewMode === 'map'
+                  ? 'bg-blue-600 text-white shadow-xs'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              🗺️ OSM Map
+            </button>
+            <button
+              type="button"
+              onClick={() => setUserViewMode('canvas')}
+              className={`px-2.5 py-1 rounded-md transition-colors cursor-pointer font-medium ${
+                viewMode === 'canvas'
+                  ? 'bg-blue-600 text-white shadow-xs'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              📊 Schematic
+            </button>
+          </div>
+
+
           {selectedRoute && (
             <Badge variant="info" size="sm">
-              Highlighting Vehicle #{selectedRoute.vehicle_id}
+              Vehicle #{selectedRoute.vehicle_id}
             </Badge>
           )}
         </div>
       </CardHeader>
+
 
       {/* Content */}
       <CardContent className="p-4 sm:p-5 flex-1 flex flex-col justify-between">
@@ -91,10 +125,17 @@ export function RouteVisualizationCanvas({
                 </Button>
               </div>
             </div>
+          ) : viewMode === 'map' ? (
+            <OSMMapView
+              geoData={geoData}
+              selectedVehicleId={selectedVehicleId}
+              onSelectVehicle={onSelectVehicle}
+            />
           ) : (
             <>
               {/* Top Toolbar */}
               <div className="px-4 py-2.5 flex items-center justify-between gap-3 text-xs text-slate-400 border-b border-slate-800/80 bg-slate-950/90 backdrop-blur-xs z-10">
+
                 <div className="flex items-center gap-2">
                   <MapPinIcon className="w-4 h-4 text-blue-400" />
                   <span className="font-medium text-slate-200">Active Path Geometry</span>
