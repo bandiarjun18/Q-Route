@@ -719,3 +719,164 @@ def load_osm_network(
     TransportGraph : Directed weighted transport graph ready for pathfinding and VRP optimization.
     """
     return osm_to_transport_graph(osm_data, config=config)
+
+
+# ---------------------------------------------------------------------------
+# Geographic Location -> Nearest Graph Node Mapping (Milestone 13.4)
+# ---------------------------------------------------------------------------
+
+def _extract_node_coordinates(data: dict[str, Any]) -> Optional[Tuple[float, float]]:
+    """
+    Extract (latitude, longitude) from node attributes if valid geographic coordinates exist.
+
+    Checks 'lat'/'lon' and 'latitude'/'longitude'.
+    Returns (lat, lon) as floats or None if unparseable or out of geographic bounds.
+    """
+    lat: Optional[float] = None
+    lon: Optional[float] = None
+
+    if "lat" in data and "lon" in data:
+        try:
+            lat = float(data["lat"])
+            lon = float(data["lon"])
+        except (ValueError, TypeError):
+            return None
+    elif "latitude" in data and "longitude" in data:
+        try:
+            lat = float(data["latitude"])
+            lon = float(data["longitude"])
+        except (ValueError, TypeError):
+            return None
+
+    if lat is not None and lon is not None:
+        if not (math.isnan(lat) or math.isnan(lon) or math.isinf(lat) or math.isinf(lon)):
+            if -90.0 <= lat <= 90.0 and -180.0 <= lon <= 180.0:
+                return (lat, lon)
+
+    return None
+
+
+def nearest_graph_node(
+    graph: TransportGraph,
+    latitude: float,
+    longitude: float,
+    *,
+    return_distance: bool = False,
+) -> Union[Any, Tuple[Any, float]]:
+    """
+    Find the nearest node in a TransportGraph to a given geographic coordinate.
+
+    Uses the great-circle Haversine formula to compute geodesic distances
+    between the target coordinate and all candidate graph nodes bearing valid
+    geographic coordinates (lat/lon).
+
+    Deterministic tie-breaking:
+    If multiple nodes have identical minimal distances, the candidate with the
+    lexicographically smallest string representation of its node ID is selected.
+
+    Parameters
+    ----------
+    graph           : TransportGraph instance containing road network nodes.
+    latitude        : Target latitude in decimal degrees [-90.0, 90.0].
+    longitude       : Target longitude in decimal degrees [-180.0, 180.0].
+    return_distance : If True, returns a tuple of (node_id, distance_km).
+                      If False (default), returns node_id directly.
+
+    Returns
+    -------
+    Any or Tuple[Any, float] : The node ID (or (node_id, distance_km)) of the nearest node.
+
+    Raises
+    ------
+    OSMEmptyNetworkError : If the graph has no nodes.
+    OSMInvalidDataError  : If latitude/longitude are invalid or out of bounds,
+                           or if the graph contains no valid coordinate-bearing nodes.
+    """
+    if not isinstance(graph, TransportGraph):
+        raise OSMInvalidDataError(f"Expected TransportGraph instance, got {type(graph).__name__}")
+
+    if graph.node_count() == 0:
+        raise OSMEmptyNetworkError("TransportGraph contains no nodes.")
+
+    try:
+        lat_f = float(latitude)
+        lon_f = float(longitude)
+    except (ValueError, TypeError) as e:
+        raise OSMInvalidDataError(f"Coordinates must be numeric: lat={latitude!r}, lon={longitude!r}") from e
+
+    if math.isnan(lat_f) or math.isinf(lat_f) or not (-90.0 <= lat_f <= 90.0):
+        raise OSMInvalidDataError(f"Latitude out of bounds [-90, 90]: {latitude}")
+
+    if math.isnan(lon_f) or math.isinf(lon_f) or not (-180.0 <= lon_f <= 180.0):
+        raise OSMInvalidDataError(f"Longitude out of bounds [-180, 180]: {longitude}")
+
+    candidates: list[Tuple[float, str, Any]] = []
+
+    for node_id, data in graph.graph.nodes(data=True):
+        coords = _extract_node_coordinates(data)
+        if coords is None:
+            continue
+        node_lat, node_lon = coords
+        try:
+            dist_km = haversine_distance(lat_f, lon_f, node_lat, node_lon)
+            candidates.append((dist_km, str(node_id), node_id))
+        except (OSMInvalidDataError, ValueError):
+            continue
+
+    if not candidates:
+        raise OSMInvalidDataError(
+            "TransportGraph contains no valid coordinate-bearing nodes with latitude and longitude attributes."
+        )
+
+    # Sort deterministically: primary key is distance (float), secondary key is str(node_id)
+    candidates.sort(key=lambda item: (item[0], item[1]))
+    best_dist, _, best_node_id = candidates[0]
+
+    if return_distance:
+        return best_node_id, best_dist
+    return best_node_id
+
+
+def map_coordinate_to_node(
+    graph: TransportGraph,
+    latitude: float,
+    longitude: float,
+) -> Any:
+    """
+    Map a real-world geographic coordinate (latitude, longitude) to the nearest
+    TransportGraph node ID for customer or depot placement.
+
+    Parameters
+    ----------
+    graph     : TransportGraph instance.
+    latitude  : Target latitude in decimal degrees [-90.0, 90.0].
+    longitude : Target longitude in decimal degrees [-180.0, 180.0].
+
+    Returns
+    -------
+    Any : Nearest TransportGraph node ID.
+    """
+    return nearest_graph_node(graph, latitude=latitude, longitude=longitude)
+
+
+def map_coordinates_to_nodes(
+    graph: TransportGraph,
+    coordinates: Iterable[Tuple[float, float]],
+) -> list[Any]:
+    """
+    Batch map multiple (latitude, longitude) coordinates to their respective
+    nearest TransportGraph node IDs.
+
+    Parameters
+    ----------
+    graph       : TransportGraph instance.
+    coordinates : Iterable of (latitude, longitude) coordinate tuples.
+
+    Returns
+    -------
+    list[Any] : List of nearest TransportGraph node IDs matching the input order.
+    """
+    return [
+        nearest_graph_node(graph, latitude=lat, longitude=lon)
+        for lat, lon in coordinates
+    ]

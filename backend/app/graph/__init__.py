@@ -29,6 +29,9 @@ from .osm import (
     osm_to_network_dict,
     osm_to_transport_graph,
     load_osm_network,
+    nearest_graph_node,
+    map_coordinate_to_node,
+    map_coordinates_to_nodes,
 )
 from .osm_client import (
     BoundingBox,
@@ -57,7 +60,7 @@ __all__ = [
     # Pathfinding
     "shortest_path",
     "path_cost",
-    # OSM Ingestion (M13.1)
+    # OSM Ingestion (M13.1 & M13.3)
     "OSMConfig",
     "OSMIngestionError",
     "OSMParseError",
@@ -71,6 +74,10 @@ __all__ = [
     "osm_to_network_dict",
     "osm_to_transport_graph",
     "load_osm_network",
+    # Location Mapping (M13.4)
+    "nearest_graph_node",
+    "map_coordinate_to_node",
+    "map_coordinates_to_nodes",
     # OSM Acquisition Client (M13.2)
     "BoundingBox",
     "OSMClientConfig",
