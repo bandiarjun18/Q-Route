@@ -19,6 +19,14 @@ from .generator import (
     load_vrp_json,
     vrp_problem_to_dict,
     vrp_problem_from_dict,
+    map_customer_location,
+    map_depot_location,
+    map_customer_locations,
+    create_geographic_customer,
+    create_geographic_vehicle,
+    create_geographic_customers,
+    create_geographic_vehicles,
+    build_geographic_vrp_problem,
 )
 
 __all__ = [
@@ -41,4 +49,13 @@ __all__ = [
     "load_vrp_json",
     "vrp_problem_to_dict",
     "vrp_problem_from_dict",
+    # Geographic VRP Helpers (Milestone 13.5)
+    "map_customer_location",
+    "map_depot_location",
+    "map_customer_locations",
+    "create_geographic_customer",
+    "create_geographic_vehicle",
+    "create_geographic_customers",
+    "create_geographic_vehicles",
+    "build_geographic_vrp_problem",
 ]

@@ -45,12 +45,17 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
-from typing import Any
+from typing import Any, Iterable, Tuple, Union
 
 import numpy as np
 
 from app.graph.generator import generate_synthetic_network
 from app.graph.model import TransportGraph
+from app.graph.osm import (
+    OSMInvalidDataError,
+    nearest_graph_node,
+    map_coordinates_to_nodes,
+)
 from app.vrp.models import Customer, Vehicle, VRPProblem
 
 
@@ -270,6 +275,167 @@ def load_vrp_json(path: str | Path) -> VRPProblem:
     with open(path, encoding="utf-8") as fh:
         data = json.load(fh)
     return vrp_problem_from_dict(data)
+
+
+# ---------------------------------------------------------------------------
+# Geographic Location -> VRP Primitives Mapping (Milestone 13.5)
+# ---------------------------------------------------------------------------
+
+def map_customer_location(
+    graph: TransportGraph,
+    latitude: float,
+    longitude: float,
+) -> Any:
+    """
+    Map a customer's geographic coordinate (latitude, longitude) to the nearest
+    TransportGraph node ID.
+    """
+    return nearest_graph_node(graph, latitude=latitude, longitude=longitude)
+
+
+def map_depot_location(
+    graph: TransportGraph,
+    latitude: float,
+    longitude: float,
+) -> Any:
+    """
+    Map a vehicle depot's geographic coordinate (latitude, longitude) to the nearest
+    TransportGraph node ID.
+    """
+    return nearest_graph_node(graph, latitude=latitude, longitude=longitude)
+
+
+def map_customer_locations(
+    graph: TransportGraph,
+    coordinates: Iterable[Tuple[float, float]],
+) -> list[Any]:
+    """
+    Batch map multiple customer coordinates (latitude, longitude) to their respective
+    nearest TransportGraph node IDs.
+    """
+    return map_coordinates_to_nodes(graph, coordinates)
+
+
+def create_geographic_customer(
+    graph: TransportGraph,
+    customer_id: Any,
+    latitude: float,
+    longitude: float,
+    demand: float,
+) -> Customer:
+    """
+    Construct a Customer instance by mapping geographic coordinates (latitude, longitude)
+    to the nearest TransportGraph node ID.
+    """
+    location_node = map_customer_location(graph, latitude=latitude, longitude=longitude)
+    return Customer(customer_id=customer_id, location_node=location_node, demand=demand)
+
+
+def create_geographic_vehicle(
+    graph: TransportGraph,
+    vehicle_id: Any,
+    capacity: float,
+    depot_latitude: float,
+    depot_longitude: float,
+) -> Vehicle:
+    """
+    Construct a Vehicle instance by mapping geographic depot coordinates (latitude, longitude)
+    to the nearest TransportGraph node ID.
+    """
+    depot_node = map_depot_location(graph, latitude=depot_latitude, longitude=depot_longitude)
+    return Vehicle(vehicle_id=vehicle_id, capacity=capacity, depot_node=depot_node)
+
+
+def create_geographic_customers(
+    graph: TransportGraph,
+    customer_specs: Iterable[Union[dict[str, Any], Tuple[Any, float, float, float]]],
+) -> list[Customer]:
+    """
+    Batch construct Customer instances from geographic specifications.
+
+    Accepts dicts with keys ('customer_id', 'latitude', 'longitude', 'demand') or
+    tuples of (customer_id, latitude, longitude, demand).
+    """
+    customers: list[Customer] = []
+    for spec in customer_specs:
+        if isinstance(spec, dict):
+            cid = spec.get("customer_id")
+            lat = spec.get("latitude", spec.get("lat"))
+            lon = spec.get("longitude", spec.get("lon"))
+            dem = spec.get("demand")
+            if cid is None or lat is None or lon is None or dem is None:
+                raise OSMInvalidDataError(
+                    f"Customer dict spec must contain 'customer_id', 'latitude', 'longitude', and 'demand': {spec!r}"
+                )
+        elif isinstance(spec, (tuple, list)) and len(spec) == 4:
+            cid, lat, lon, dem = spec
+        else:
+            raise OSMInvalidDataError(
+                f"Customer specification must be a dict or 4-tuple (customer_id, lat, lon, demand), got {spec!r}"
+            )
+        customers.append(
+            create_geographic_customer(graph, customer_id=cid, latitude=lat, longitude=lon, demand=dem)
+        )
+    return customers
+
+
+def create_geographic_vehicles(
+    graph: TransportGraph,
+    vehicle_specs: Iterable[Union[dict[str, Any], Tuple[Any, float, float, float]]],
+) -> list[Vehicle]:
+    """
+    Batch construct Vehicle instances from geographic depot specifications.
+
+    Accepts dicts with keys ('vehicle_id', 'capacity', 'depot_latitude', 'depot_longitude')
+    or ('vehicle_id', 'capacity', 'lat', 'lon'), or tuples of (vehicle_id, capacity, depot_lat, depot_lon).
+    """
+    vehicles: list[Vehicle] = []
+    for spec in vehicle_specs:
+        if isinstance(spec, dict):
+            vid = spec.get("vehicle_id")
+            cap = spec.get("capacity")
+            lat = spec.get("depot_latitude", spec.get("latitude", spec.get("lat")))
+            lon = spec.get("depot_longitude", spec.get("longitude", spec.get("lon")))
+            if vid is None or cap is None or lat is None or lon is None:
+                raise OSMInvalidDataError(
+                    f"Vehicle dict spec must contain 'vehicle_id', 'capacity', depot latitude, and depot longitude: {spec!r}"
+                )
+        elif isinstance(spec, (tuple, list)) and len(spec) == 4:
+            vid, cap, lat, lon = spec
+        else:
+            raise OSMInvalidDataError(
+                f"Vehicle specification must be a dict or 4-tuple (vehicle_id, capacity, depot_lat, depot_lon), got {spec!r}"
+            )
+        vehicles.append(
+            create_geographic_vehicle(graph, vehicle_id=vid, capacity=cap, depot_latitude=lat, depot_longitude=lon)
+        )
+    return vehicles
+
+
+def build_geographic_vrp_problem(
+    graph: TransportGraph,
+    vehicles: Union[list[Vehicle], Iterable[Union[dict[str, Any], Tuple[Any, float, float, float]]]],
+    customers: Union[list[Customer], Iterable[Union[dict[str, Any], Tuple[Any, float, float, float]]]],
+) -> VRPProblem:
+    """
+    Construct a canonical VRPProblem from a TransportGraph and geographic vehicle/customer specifications.
+    """
+    processed_vehicles: list[Vehicle] = []
+    for v in vehicles:
+        if isinstance(v, Vehicle):
+            processed_vehicles.append(v)
+        else:
+            processed_vehicles.extend(create_geographic_vehicles(graph, [v]))
+
+    processed_customers: list[Customer] = []
+    for c in customers:
+        if isinstance(c, Customer):
+            processed_customers.append(c)
+        else:
+            processed_customers.extend(create_geographic_customers(graph, [c]))
+
+    return VRPProblem(graph=graph, vehicles=processed_vehicles, customers=processed_customers)
+
 
 
 # ---------------------------------------------------------------------------
