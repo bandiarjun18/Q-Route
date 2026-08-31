@@ -20,9 +20,9 @@ When real-time disruptions occur (such as accidents, road closures, construction
 - **Constrained Multi-Vehicle VRP**: Strict enforcement of vehicle payload capacities, customer cargo demands, mandatory depot return, and open-edge path continuity.
 - **Quantum-Inspired Metaheuristic (QPSO)**: Continuous-space quantum delta-potential particle dynamics decoded into discrete customer visit permutations and greedy vehicle partitions.
 - **Feasibility Repair & 2-Opt Search**: Automatic capacity constraint repair on candidate routes coupled with an intra-route 2-opt local search pass for path shortening.
-- **Incident-Aware Selective Re-Routing**: Real-time road disruption modeling (`ACCIDENT`, `ROAD_CLOSURE`, `CONSTRUCTION`, `OBSTRUCTION`) with selective re-optimization of affected vehicles only.
-- **Enterprise REST API**: Built with FastAPI, providing typed Pydantic v2 schemas, state dependency injection guards, and interactive OpenAPI documentation.
-- **PostgreSQL Persistence Layer**: Relational persistence using SQLAlchemy 2.0, psycopg 3, and Alembic migrations for networks, fleets, optimization runs, convergence histories, and incidents.
+- **Incident-Aware Selective Re-Routing (M12)**: Real-time road disruption handling (`ACCIDENT`, `ROAD_CLOSURE`, `CONSTRUCTION`, `OBSTRUCTION`) with dynamic selective re-optimization (`backend/app/incidents/rerouting.py`). When an incident occurs, affected vehicle routes are identified (`detect_affected_routes()`), unaffected vehicle routes are preserved unchanged, affected vehicles are selectively re-routed (`selective_reroute()`) via QPSO avoiding closed edges, and updated routes (`RerouteResult`) are validated and persisted through the database/API architecture.
+- **Enterprise REST API**: Built with FastAPI, providing typed Pydantic v2 schemas, state dependency injection guards, interactive OpenAPI documentation, and incident registration integrated with selective dynamic rerouting (`POST /incidents`).
+- **PostgreSQL Persistence Layer**: Relational persistence using PostgreSQL 18, SQLAlchemy 2.x, psycopg 3.x, Alembic migrations, connection pooling, and a dedicated repository/CRUD layer (`backend/app/db/`) for networks, fleets, optimization runs, routes, and incidents, while in-memory optimization execution remains fully compatible and decoupled.
 - **Scientific Benchmarking Suite**: Comparative evaluation suite against Classical PSO, Genetic Algorithm (GA), Simulated Annealing (SA), and Branch-and-Bound Exact Solvers across standardized problem instances.
 - **Modern Web Application**: Interactive dashboard built with React 19, Vite, Tailwind CSS, Recharts, and React-Leaflet across 7 dedicated operational views.
 
@@ -36,7 +36,8 @@ When real-time disruptions occur (such as accidents, road closures, construction
 | **Backend API** | Python 3.11+, FastAPI, Uvicorn, Pydantic v2 | REST API routing, validation, and request lifecycle management |
 | **Optimization Core** | NumPy, SciPy, Custom Discrete QPSO + 2-Opt | Stochastic quantum particle swarm optimization and local search |
 | **Graph & Routing** | NetworkX | Directed transport graph modeling and Dijkstra shortest path finding |
-| **Database & ORM** | PostgreSQL 18, SQLAlchemy 2.0, psycopg 3, Alembic | Relational data persistence, schema migrations, and connection pooling |
+| **Database & ORM** | PostgreSQL 18, SQLAlchemy 2.x, psycopg 3.x, Alembic | Relational operational persistence, schema migrations, and connection pooling |
+| **Data & Datasets** | PostgreSQL 18 · JSON / CSV synthetic datasets | Operational persistence alongside experiment & benchmark dataset suites |
 | **Benchmarking** | Pandas, Matplotlib, Custom Comparator Suite | Multi-algorithm evaluation, statistical analysis, and chart generation |
 | **Testing** | Pytest, Pytest-Asyncio, HTTPX | Automated unit, integration, and API regression testing |
 
@@ -65,6 +66,7 @@ When real-time disruptions occur (such as accidents, road closures, construction
 │  - VRPProblem & Feasibility Checker  │  │  - optimization_runs (JSONB) │
 │  - QPSOOptimizer + Repair + 2-Opt    │  │  - routes & incidents         │
 │  - RouteManager (Active Routes)      │  │  - Alembic Version Tracking   │
+│  - Selective Rerouting (M12)         │  │                              │
 └──────────────────────────────────────┘  └──────────────────────────────┘
 ```
 
@@ -108,22 +110,39 @@ All components import canonical weights (`w_time=1.0`, `w_distance=0.5`, `w_cong
 
 ## 6. Database Architecture
 
-Q-Route uses **PostgreSQL** for persistent storage, managed via **SQLAlchemy 2.0** declarative ORM models and **Alembic** migrations:
+Q-Route implements robust operational persistence with **PostgreSQL 18** using **SQLAlchemy 2.x**, **psycopg 3.x**, and **Alembic** migrations:
 
-- **`networks`**: Network generation metadata, seed, node/edge counts, and active scenario status.
-- **`nodes`**: Vertices with spatial coordinates ($x, y$) and roles (`depot`, `customer`, `intersection`).
-- **`edges`**: Directed road segments, base travel time, congestion factor, and road status (`open`/`closed`).
-- **`fleet_vehicles`**: Vehicle configurations, capacities, and home depot assignments.
-- **`customers`**: Delivery orders, demands, and destination location node IDs.
-- **`optimization_runs`**: QPSO hyper-parameters, fitness scores, repair breakdown, and full `convergence_history` stored as JSONB.
-- **`routes`**: Generated vehicle routes with ordered stop sequences, ETA, metrics, and operational status.
-- **`incidents`**: Road disruption registry tracking affected link coordinates, disruption type, and severity.
-
-Database operations are abstracted into a repository/CRUD layer ([`backend/app/db/crud.py`](backend/app/db/crud.py)), ensuring database persistence remains cleanly decoupled from in-memory optimization execution.
+- **Configuration & Security**: Engine connection pooling and session management are configured in `backend/app/db/session.py`. `DATABASE_URL` is loaded from `backend/.env`, ensuring database credentials and secrets remain strictly excluded from Git tracking.
+- **In-Memory & Persistence Compatibility**: Optimization execution remains fast and fully compatible with the core in-memory graph and optimizer architecture, while persistence and audit history are cleanly handled through the database layer.
+- **Repository / CRUD Layer**: Abstracted under [`backend/app/db/crud.py`](backend/app/db/crud.py) with declarative ORM models in [`backend/app/db/models.py`](backend/app/db/models.py) inheriting from [`backend/app/db/base.py`](backend/app/db/base.py).
+- **Core Entities**:
+  - **`networks`**: Network generation metadata, seed, node/edge counts, and active scenario status.
+  - **`nodes`**: Vertices with spatial coordinates ($x, y$) and roles (`depot`, `customer`, `intersection`).
+  - **`edges`**: Directed road segments, base travel time, congestion factor, and road status (`open`/`closed`).
+  - **`fleet_vehicles`**: Vehicle configurations, capacities, and home depot assignments.
+  - **`customers`**: Delivery orders, demands, and destination location node IDs.
+  - **`optimization_runs`**: QPSO hyper-parameters, fitness scores, repair breakdown, and full `convergence_history` stored as JSONB.
+  - **`routes`**: Generated vehicle routes with ordered stop sequences, ETA, metrics, and operational status.
+  - **`incidents`**: Road disruption registry tracking affected link coordinates, disruption type, and severity.
+- **Operational Data vs. Datasets**: PostgreSQL serves as the persistent operational database for application state, while JSON and CSV synthetic datasets continue to be utilized for benchmark instances, testing scenarios, and experimental evaluations.
 
 ---
 
-## 7. Benchmarking & Scientific Evaluation
+## 7. Incident-Aware Dynamic Selective Rerouting (M12)
+
+When an unforeseen disruption occurs on active routes (e.g., road closures, accidents), Q-Route executes selective re-routing implemented in [`backend/app/incidents/rerouting.py`](backend/app/incidents/rerouting.py):
+
+- **Core Workflow & Capabilities**:
+  - **Incident Detection**: `detect_affected_routes()` identifies vehicle routes whose active paths traverse disrupted or closed edges.
+  - **Route Preservation**: Unaffected vehicle routes are preserved completely unchanged, avoiding unnecessary operational churn across the fleet.
+  - **Selective Re-Optimization**: `selective_reroute()` isolates only affected vehicles and re-optimizes their routes on the updated graph topology using QPSO.
+  - **Closed-Edge Avoidance & Validation**: New routes strictly avoid closed edges and are validated against graph connectivity, vehicle payload capacities, and depot return constraints.
+  - **Structured Outcome (`RerouteResult`)**: Encapsulates affected/unaffected vehicle IDs, updated routes, preserved routes, feasibility status, iterations executed, and post-incident fitness.
+  - **API & Operational Integration**: `POST /incidents` seamlessly integrates incident registration with selective dynamic rerouting, updates active routes in `RouteManager`, and persists new route states to PostgreSQL.
+
+---
+
+## 8. Benchmarking & Scientific Evaluation
 
 Q-Route includes a scientific evaluation framework comparing QPSO against conventional algorithms on identical problem instances:
 
@@ -150,7 +169,7 @@ Q-Route includes a scientific evaluation framework comparing QPSO against conven
 
 ---
 
-## 8. Project Evolution & Milestones
+## 9. Project Evolution & Milestones
 
 | Milestone | Scope / Deliverable | Status |
 |---|---|---|
@@ -169,15 +188,16 @@ Q-Route includes a scientific evaluation framework comparing QPSO against conven
 | **M11 Phase 3** | Unified benchmark runner with multi-seed trials and JSON/CSV export | **Completed** |
 | **M11 Phase 4** | Statistical analysis engine, metrics aggregation, and vector SVG visualizations | **Completed** |
 | **M11 Database** | PostgreSQL 18 persistence architecture, SQLAlchemy models, Alembic, and API CRUD | **Completed** |
-| **M12** | Dynamic incident rerouting evaluation, simulation, and operational benchmark | **In Progress** |
+| **M12** | Incident-Aware Dynamic Selective Rerouting — evaluation, simulation, and operational benchmark | **Completed** |
 
 ---
 
-## 9. Testing & Verification
+## 10. Testing & Verification
 
 Q-Route maintains automated test coverage across all domain layers:
 
-- **Total Backend Tests**: **385 passing tests** across 15 test modules.
+- **M12 Focused Verification**: **6/6 passed** (`test_m12_incident_rerouting.py`).
+- **Full Backend Regression**: **391 passing tests**, 0 failures across 16 test modules.
 - **Execution Time**: $\approx 39.4\text{s}$ full suite run.
 - **Coverage Areas**:
   - Graph algorithms and Dijkstra pathfinding
@@ -185,15 +205,16 @@ Q-Route maintains automated test coverage across all domain layers:
   - VRP constraints and capacity validation
   - QPSO optimizer convergence and 2-opt refinement
   - Incident layer and affected-route isolation
+  - Dynamic selective rerouting under disruptions (M12)
   - RouteManager lifecycle and ETA tracking
   - FastAPI endpoints and status code contracts (200, 400, 409, 422)
   - Database connectivity, model CRUD, cascade deletions, and API persistence
   - Comparator algorithms, instance generator, and statistical analysis
-- **Frontend Verification**: Production build (`vite build`) compiles cleanly with 0 errors.
+- **Frontend Verification**: Production build (`vite build`) completed successfully with 0 errors.
 
 ---
 
-## 10. Project Structure
+## 11. Project Structure
 
 ```
 Q-Route/
@@ -209,14 +230,20 @@ Q-Route/
 │   │   │   └── state.py          # In-memory application state container
 │   │   ├── core/                 # App configuration & pydantic-settings
 │   │   ├── db/                   # Database session, base model, models & CRUD helpers
+│   │   │   ├── base.py           # Declarative base model
+│   │   │   ├── crud.py           # Database CRUD/repository operations
+│   │   │   ├── models.py         # SQLAlchemy 2.x ORM entities
+│   │   │   └── session.py        # Engine configuration & sessionmaker
 │   │   ├── graph/                # TransportGraph & synthetic generator
-│   │   ├── incidents/            # IncidentLayer & disruption models
+│   │   ├── incidents/            # IncidentLayer, disruption models & selective rerouting
+│   │   │   ├── model.py          # IncidentLayer & disruption data models
+│   │   │   └── rerouting.py      # Dynamic selective reroute engine (M12)
 │   │   ├── qpso/                 # QPSO optimizer, particle, repair, 2-opt
 │   │   ├── routes/               # RouteManager, ActiveRoute, ETA validation
 │   │   ├── traffic/              # TrafficLayer & congestion states
 │   │   ├── vrp/                  # VRPProblem, Customer, Vehicle, objective, feasibility
 │   │   └── main.py               # FastAPI application entry point
-│   ├── tests/                    # 15 test suites (385 tests)
+│   ├── tests/                    # 16 test suites (391 tests)
 │   ├── alembic.ini               # Alembic configuration
 │   └── requirements.txt          # Python dependencies
 ├── frontend/                     # React 19 + Vite application
@@ -245,7 +272,7 @@ Q-Route/
 
 ---
 
-## 11. Documentation Index
+## 12. Documentation Index
 
 Detailed architectural records and API specifications are maintained in the [`docs/`](docs/) directory:
 
@@ -255,7 +282,7 @@ Detailed architectural records and API specifications are maintained in the [`do
 
 ---
 
-## 12. How to Run Locally
+## 13. How to Run Locally
 
 ### Prerequisites
 - Python 3.11+
@@ -324,21 +351,20 @@ python -m experiments.benchmarks.analyze_results
 
 ---
 
-## 13. Current Status
+## 14. Current Status
 
-- **M11 Complete & Verified**: Comparator algorithms, standardized instances, unified benchmark runner, statistical analysis, and PostgreSQL persistence architecture are completed, tested (385 passing tests), and committed to `main`.
-- **M12 Active**: Dynamic incident rerouting evaluation and simulation benchmark is currently beginning.
+- **M11 Complete & Verified**: Comparator algorithms, standardized instances, unified benchmark runner, statistical analysis, and PostgreSQL persistence architecture are completed and verified as the foundation for M12.
+- **M12 Complete & Verified**: Incident-Aware Dynamic Selective Rerouting (`backend/app/incidents/rerouting.py`) is completed and verified with 6/6 focused tests and 391/391 full backend regression tests passing with 0 failures.
 
 ---
 
-## 14. Future Work
+## 15. Future Work
 
-- **Dynamic Incident Benchmark Suite (M12)**: Systematic evaluation of selective vehicle re-optimization versus full fleet re-solve under varying road disruption loads.
 - **OpenStreetMap (OSM) & GIS Ingestion**: Real-world road network importing and address geocoding support.
 - **Multi-Depot VRP with Time Windows (MDVRPTW)**: Extended formulation supporting distributed depots and delivery appointment windows.
 
 ---
 
-## 15. License
+## 16. License
 
 To be decided.
