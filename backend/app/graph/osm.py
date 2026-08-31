@@ -618,13 +618,13 @@ def osm_to_network_dict(
     config: Optional[OSMConfig] = None,
 ) -> dict:
     """
-    Unified entry point to parse OSM data (XML or JSON) into a Q-Route network dictionary.
+    Unified entry point to parse OSM data (XML, JSON, or normalized network dict) into a Q-Route network dictionary.
 
-    Automatically detects whether the input is JSON or XML based on format/type.
+    Automatically detects whether the input is a normalized network dict, JSON, or XML.
 
     Parameters
     ----------
-    osm_data : OSM data as a dictionary, XML/JSON string, bytes, or file path.
+    osm_data : OSM data as a dictionary (normalized or Overpass JSON), XML/JSON string, bytes, or file path.
     config   : Ingestion configuration options.
 
     Returns
@@ -634,6 +634,8 @@ def osm_to_network_dict(
     cfg = config or OSMConfig()
 
     if isinstance(osm_data, dict):
+        if "nodes" in osm_data and "edges" in osm_data:
+            return osm_data
         return parse_osm_json(osm_data, cfg)
 
     if isinstance(osm_data, (str, Path)):
@@ -658,12 +660,54 @@ def osm_to_network_dict(
     raise OSMParseError(f"Unsupported OSM data input type: {type(osm_data)}")
 
 
+def osm_to_transport_graph(
+    osm_data: Union[str, bytes, dict, Path],
+    config: Optional[OSMConfig] = None,
+) -> TransportGraph:
+    """
+    Adapter converting normalized OSM network data or raw OSM data into a canonical Q-Route ``TransportGraph``.
+
+    Accepts:
+    - Normalized network dictionary: ``{"nodes": [...], "edges": [...]}``
+    - Overpass/OSM JSON dictionary: ``{"elements": [...]}``
+    - XML string, bytes, or file path to OSM XML/JSON.
+
+    Node Mapping:
+    - ID: OSM Node ID
+    - node_type: 'intersection' (or 'depot'/'customer' if specified)
+    - x: longitude (decimal degrees)
+    - y: latitude (decimal degrees)
+    - Metadata: lat, lon, osm_id preserved in node attributes.
+
+    Edge Mapping:
+    - (u, v): Directed road segment
+    - distance: Segment length in kilometers (km)
+    - base_travel_time: Free-flow travel time in minutes (distance / speed * 60.0)
+    - congestion_factor: 1.0 (free flow)
+    - road_status: 'open'
+    - Metadata: osm_way_id, highway, speed_kmh, oneway, name preserved.
+
+    Parameters
+    ----------
+    osm_data : Normalized network dict or raw OSM data (XML/JSON).
+    config   : Ingestion configuration options.
+
+    Returns
+    -------
+    TransportGraph : Canonical directed weighted graph ready for pathfinding and VRP optimization.
+    """
+    net_dict = osm_to_network_dict(osm_data, config=config)
+    return TransportGraph.from_dict(net_dict)
+
+
 def load_osm_network(
     osm_data: Union[str, bytes, dict, Path],
     config: Optional[OSMConfig] = None,
 ) -> TransportGraph:
     """
     Parse OSM data and return a fully initialized Q-Route ``TransportGraph`` instance.
+
+    Alias for ``osm_to_transport_graph``.
 
     Parameters
     ----------
@@ -674,5 +718,4 @@ def load_osm_network(
     -------
     TransportGraph : Directed weighted transport graph ready for pathfinding and VRP optimization.
     """
-    net_dict = osm_to_network_dict(osm_data, config=config)
-    return TransportGraph.from_dict(net_dict)
+    return osm_to_transport_graph(osm_data, config=config)

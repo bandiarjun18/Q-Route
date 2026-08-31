@@ -27,6 +27,7 @@ from .osm import (
     parse_osm_xml,
     parse_osm_json,
     osm_to_network_dict,
+    osm_to_transport_graph,
     load_osm_network,
 )
 from .osm_client import (
@@ -68,6 +69,7 @@ __all__ = [
     "parse_osm_xml",
     "parse_osm_json",
     "osm_to_network_dict",
+    "osm_to_transport_graph",
     "load_osm_network",
     # OSM Acquisition Client (M13.2)
     "BoundingBox",
