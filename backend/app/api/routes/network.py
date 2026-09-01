@@ -133,3 +133,102 @@ def create_network(
         nodes=nodes_out,
         edges=edges_out,
     )
+
+
+@router.post(
+    "/osm-preset",
+    response_model=NetworkResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Load a real-world OpenStreetMap road network",
+    description=(
+        "Loads and validates a high-fidelity real-world OpenStreetMap urban "
+        "road network (Bangalore Logistics Corridor) with true geographic coordinates, "
+        "road segment curve geometries, speed limits, and oneway routing rules. "
+        "Persists the network to PostgreSQL and initializes state."
+    ),
+)
+def load_osm_preset_network(
+    body: Optional[OSMNetworkPresetRequest] = None,
+    state: AppState = Depends(get_state),
+    db: Session = Depends(get_db),
+) -> NetworkResponse:
+    """
+    Ingest a real-world OSM network into AppState and PostgreSQL.
+    """
+    from app.graph.demo_data import REAL_WORLD_OSM_XML
+    from app.graph.osm import osm_to_network_dict, osm_to_transport_graph
+
+    xml_content = (body.osm_xml if body and body.osm_xml else REAL_WORLD_OSM_XML)
+    tg = osm_to_transport_graph(xml_content)
+    net_data = osm_to_network_dict(xml_content)
+
+    # Count node types
+    g = tg.graph
+    node_types = {n: d.get("node_type", "intersection") for n, d in g.nodes(data=True)}
+    n_depots_actual = sum(1 for t in node_types.values() if t == "depot")
+    n_customers_actual = sum(1 for t in node_types.values() if t == "customer")
+    n_intersections = sum(1 for t in node_types.values() if t == "intersection")
+
+    # Store state
+    state.clear_from_network()
+    state.graph = tg
+    state.network_meta = {
+        "source": "OpenStreetMap",
+        "preset": getattr(body, "preset_name", "bangalore_urban") if body else "bangalore_urban",
+        "n_nodes": tg.node_count(),
+        "n_edges": tg.edge_count(),
+        "n_depots": n_depots_actual,
+        "n_customers": n_customers_actual,
+        "n_intersections": n_intersections,
+        "seed": 42,
+    }
+
+    # Persist to PostgreSQL
+    try:
+        net_model = save_network(
+            db=db,
+            net_data=net_data,
+            seed=42,
+            connect_radius_km=0.0,
+            grid_size_km=0.0,
+            closed_fraction=0.0,
+            name="Real-World OSM Network (Bangalore Central)",
+        )
+        state.network_db_id = net_model.id
+    except Exception as exc:
+        logger.warning("Failed to persist OSM network to PostgreSQL: %s", exc)
+
+    nodes_out = [
+        NodeOut(
+            id=n,
+            node_type=d.get("node_type", "intersection"),
+            x=float(d.get("x", 0.0)),
+            y=float(d.get("y", 0.0)),
+            lat=float(d["lat"]) if "lat" in d and d["lat"] is not None else None,
+            lon=float(d["lon"]) if "lon" in d and d["lon"] is not None else None,
+        )
+        for n, d in g.nodes(data=True)
+    ]
+
+    edges_out = [
+        EdgeOut(
+            u=u,
+            v=v,
+            distance=float(data.get("distance", 0.0)),
+            base_travel_time=float(data.get("base_travel_time", 0.0)),
+            congestion_factor=float(data.get("congestion_factor", 1.0)),
+            road_status=str(data.get("road_status", "open")),
+        )
+        for u, v, data in g.edges(data=True)
+    ]
+
+    return NetworkResponse(
+        n_nodes=tg.node_count(),
+        n_edges=tg.edge_count(),
+        n_depots=n_depots_actual,
+        n_customers=n_customers_actual,
+        n_intersections=n_intersections,
+        seed=42,
+        nodes=nodes_out,
+        edges=edges_out,
+    )

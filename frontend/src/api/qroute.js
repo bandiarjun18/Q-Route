@@ -140,13 +140,81 @@ export async function getGeographicRoutes() {
   return handleResponse(res)
 }
 
+/**
+ * Load a real-world OpenStreetMap urban road network (POST /network/osm-preset)
+ */
+export async function loadOSMPresetNetwork(presetName = 'bangalore_urban', osmXml = null) {
+  const res = await fetch(`${BASE_URL}/network/osm-preset`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      preset_name: presetName,
+      osm_xml: osmXml,
+    }),
+  })
+  return handleResponse(res)
+}
+
+/**
+ * Load pre-configured real-world geographic fleet and delivery orders (POST /fleet/geographic-preset)
+ */
+export async function loadGeographicFleetPreset() {
+  const res = await fetch(`${BASE_URL}/fleet/geographic-preset`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  })
+  return handleResponse(res)
+}
+
+/**
+ * Configure geographic fleet with GPS coordinates (POST /fleet/geographic)
+ */
+export async function configureGeographicFleet(payload) {
+  const res = await fetch(`${BASE_URL}/fleet/geographic`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  })
+  return handleResponse(res)
+}
+
+/**
+ * Execute full real-world end-to-end demo setup:
+ * 1. Load real-world OSM network
+ * 2. Load real-world geographic fleet & customers
+ * 3. Run QPSO route optimization
+ */
+export async function initializeE2EDemo() {
+  const network = await loadOSMPresetNetwork('bangalore_urban')
+  const fleet = await loadGeographicFleetPreset()
+  const optimizeResult = await runOptimization({
+    n_particles: 20,
+    max_iterations: 100,
+    seed: 42,
+    w_time: 1.0,
+    w_distance: 0.5,
+    w_congestion: 0.3,
+  })
+  return { network, fleet, optimizeResult }
+}
+
 export default {
   healthCheck,
   createNetwork,
+  loadOSMPresetNetwork,
   configureFleet,
+  loadGeographicFleetPreset,
+  configureGeographicFleet,
   runOptimization,
   getCurrentRoutes,
   registerIncident,
   getConvergenceHistory,
   getGeographicRoutes,
+  initializeE2EDemo,
 }

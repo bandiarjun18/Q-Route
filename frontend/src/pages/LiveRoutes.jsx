@@ -8,8 +8,8 @@ import { RouteSummaryCards } from '../components/routes/RouteSummaryCards.jsx'
 import { ActiveRoutesList } from '../components/routes/ActiveRoutesList.jsx'
 import { RouteVisualizationCanvas } from '../components/routes/RouteVisualizationCanvas.jsx'
 import { SelectedRouteDetails } from '../components/routes/SelectedRouteDetails.jsx'
-import { RefreshIcon, IncidentsIcon, CheckCircleIcon } from '../components/common/Icons.jsx'
-import { getCurrentRoutes, getGeographicRoutes, registerIncident } from '../api/qroute.js'
+import { RefreshIcon, IncidentsIcon, CheckCircleIcon, OptimizeIcon } from '../components/common/Icons.jsx'
+import { getCurrentRoutes, getGeographicRoutes, registerIncident, initializeE2EDemo } from '../api/qroute.js'
 import { networkPreviewData } from '../data/dashboardData.js'
 
 const INCIDENT_TYPES = [
@@ -32,6 +32,7 @@ export function LiveRoutes() {
   const [selectedVehicleId, setSelectedVehicleId] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
   const [isRerouting, setIsRerouting] = useState(false)
+  const [isLoadingDemo, setIsLoadingDemo] = useState(false)
   const [error, setError] = useState(null)
 
   // Incident reporting modal / form state
@@ -200,6 +201,22 @@ export function LiveRoutes() {
     }
   }
 
+  // Handle full real-world E2E demo initialization
+  const handleLoadE2EDemo = async () => {
+    setIsLoadingDemo(true)
+    setError(null)
+    setIncidentSuccessInfo(null)
+
+    try {
+      await initializeE2EDemo()
+      await fetchRoutes()
+    } catch (err) {
+      setError(err?.message || 'Failed to initialize real-world OSM demo.')
+    } finally {
+      setIsLoadingDemo(false)
+    }
+  }
+
   const selectedRoute = routes.find((r) => r.vehicle_id === selectedVehicleId)
 
   return (
@@ -210,6 +227,17 @@ export function LiveRoutes() {
         subtitle="Monitor active vehicle routes, road disruptions, and dynamic QPSO re-routing."
         actions={
           <div className="flex items-center gap-2.5">
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={handleLoadE2EDemo}
+              isLoading={isLoadingDemo}
+              leftIcon={<OptimizeIcon className="w-3.5 h-3.5" />}
+              className="text-xs h-8 px-3 font-semibold bg-blue-600 hover:bg-blue-500"
+            >
+              {isLoadingDemo ? 'Loading OSM Demo...' : 'Load Real-World OSM Demo'}
+            </Button>
+
             <Button
               variant={showIncidentForm ? 'primary' : 'secondary'}
               size="sm"

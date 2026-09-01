@@ -72,6 +72,47 @@ class NetworkResponse(BaseModel):
     edges: list[EdgeOut]
 
 
+class OSMNetworkPresetRequest(BaseModel):
+    """Parameters for POST /network/osm-preset."""
+    preset_name: str = Field("bangalore_urban", description="Pre-configured real-world OSM dataset identifier")
+    osm_xml: Optional[str] = Field(None, description="Optional custom OpenStreetMap XML payload to ingest")
+
+
+class GeographicVehicleIn(BaseModel):
+    """Configuration for one geographic fleet vehicle."""
+    vehicle_id: Any = Field(..., description="Unique vehicle identifier")
+    capacity: float = Field(..., gt=0, description="Maximum vehicle payload capacity (> 0)")
+    depot_latitude: float = Field(..., ge=-90.0, le=90.0, description="Home depot latitude")
+    depot_longitude: float = Field(..., ge=-180.0, le=180.0, description="Home depot longitude")
+
+
+class GeographicCustomerIn(BaseModel):
+    """Configuration for one geographic customer delivery."""
+    customer_id: Any = Field(..., description="Unique customer identifier")
+    latitude: float = Field(..., ge=-90.0, le=90.0, description="Delivery location latitude")
+    longitude: float = Field(..., ge=-180.0, le=180.0, description="Delivery location longitude")
+    demand: float = Field(..., ge=0, description="Customer demand units (≥ 0)")
+
+
+class GeographicFleetRequest(BaseModel):
+    """Parameters for POST /fleet/geographic — configures fleet with lat/lon coordinates."""
+    vehicles: list[GeographicVehicleIn] = Field(..., min_length=1)
+    customers: list[GeographicCustomerIn] = Field(..., min_length=1)
+
+
+class E2EDemoInitResponse(BaseModel):
+    """Response returned when initializing the real-world end-to-end demo."""
+    network_name: str
+    n_nodes: int
+    n_edges: int
+    n_vehicles: int
+    n_customers: int
+    best_fitness: float
+    is_feasible: bool
+    n_routes: int
+    routes: list[RouteOut]
+
+
 # ═══════════════════════════════════════════════════════════════════════════
 # Fleet
 # ═══════════════════════════════════════════════════════════════════════════

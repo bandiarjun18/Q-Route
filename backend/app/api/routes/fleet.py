@@ -123,3 +123,146 @@ def configure_fleet(
         customers=list(body.customers),
     )
 
+
+@router.post(
+    "/geographic",
+    response_model=FleetResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Configure geographic fleet with latitude and longitude coordinates",
+    description=(
+        "Configures vehicles and customer delivery orders using real-world "
+        "latitude and longitude coordinates. Automatically snaps each location "
+        "to the nearest road graph node on the loaded OSM network."
+    ),
+)
+def configure_geographic_fleet(
+    body: GeographicFleetRequest,
+    state: AppState = Depends(require_graph),
+    db: Session = Depends(get_db),
+) -> FleetResponse:
+    """
+    Build and store a geographic VRPProblem with automatic coordinate-to-node snapping.
+    """
+    from app.vrp.generator import build_geographic_vrp_problem
+
+    graph = state.graph
+    assert graph is not None
+
+    veh_dicts = [v.model_dump() for v in body.vehicles]
+    cust_dicts = [c.model_dump() for c in body.customers]
+
+    problem = build_geographic_vrp_problem(
+        graph=graph,
+        vehicles=veh_dicts,
+        customers=cust_dicts,
+    )
+
+    state.clear_from_fleet()
+    state.problem = problem
+
+    # Persist to PostgreSQL
+    try:
+        net_id = state.network_db_id
+        if not net_id:
+            active_net = get_active_network(db)
+            if active_net:
+                net_id = active_net.id
+                state.network_db_id = net_id
+        if net_id:
+            save_fleet(db, net_id, problem.vehicles, problem.customers)
+    except Exception as exc:
+        logger.warning("Failed to persist geographic fleet to PostgreSQL: %s", exc)
+
+    vehicles_out = [
+        VehicleIn(
+            vehicle_id=v.vehicle_id,
+            capacity=v.capacity,
+            depot_node=v.depot_node,
+        )
+        for v in problem.vehicles
+    ]
+    customers_out = [
+        CustomerIn(
+            customer_id=c.customer_id,
+            location_node=c.location_node,
+            demand=c.demand,
+        )
+        for c in problem.customers
+    ]
+
+    return FleetResponse(
+        n_vehicles=len(problem.vehicles),
+        n_customers=len(problem.customers),
+        vehicles=vehicles_out,
+        customers=customers_out,
+    )
+
+
+@router.post(
+    "/geographic-preset",
+    response_model=FleetResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Load pre-configured real-world geographic fleet and delivery orders",
+    description=(
+        "Loads the canonical Bangalore central logistics fleet (2 vehicles, 6 customer "
+        "orders with real GPS coordinates) and snaps them to the active OSM network."
+    ),
+)
+def load_geographic_fleet_preset(
+    state: AppState = Depends(require_graph),
+    db: Session = Depends(get_db),
+) -> FleetResponse:
+    """
+    Load canonical real-world fleet preset into AppState and PostgreSQL.
+    """
+    from app.graph.demo_data import REAL_WORLD_CUSTOMERS, REAL_WORLD_FLEET_VEHICLES
+    from app.vrp.generator import build_geographic_vrp_problem
+
+    graph = state.graph
+    assert graph is not None
+
+    problem = build_geographic_vrp_problem(
+        graph=graph,
+        vehicles=REAL_WORLD_FLEET_VEHICLES,
+        customers=REAL_WORLD_CUSTOMERS,
+    )
+
+    state.clear_from_fleet()
+    state.problem = problem
+
+    try:
+        net_id = state.network_db_id
+        if not net_id:
+            active_net = get_active_network(db)
+            if active_net:
+                net_id = active_net.id
+                state.network_db_id = net_id
+        if net_id:
+            save_fleet(db, net_id, problem.vehicles, problem.customers)
+    except Exception as exc:
+        logger.warning("Failed to persist geographic fleet preset to PostgreSQL: %s", exc)
+
+    vehicles_out = [
+        VehicleIn(
+            vehicle_id=v.vehicle_id,
+            capacity=v.capacity,
+            depot_node=v.depot_node,
+        )
+        for v in problem.vehicles
+    ]
+    customers_out = [
+        CustomerIn(
+            customer_id=c.customer_id,
+            location_node=c.location_node,
+            demand=c.demand,
+        )
+        for c in problem.customers
+    ]
+
+    return FleetResponse(
+        n_vehicles=len(problem.vehicles),
+        n_customers=len(problem.customers),
+        vehicles=vehicles_out,
+        customers=customers_out,
+    )
+
