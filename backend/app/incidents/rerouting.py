@@ -176,7 +176,10 @@ def selective_reroute(
         if vr.vehicle_id not in affected_vids:
             continue
 
-        route_id = f"V{vr.vehicle_id}"
+        existing_routes = rm.routes_for_vehicle(vr.vehicle_id)
+        route_id = existing_routes[0].route_id if existing_routes else (
+            str(vr.vehicle_id) if str(vr.vehicle_id).startswith("V") else f"V{vr.vehicle_id}"
+        )
         seq = vr.node_sequence
 
         # Skip trivial empty routes
@@ -191,11 +194,12 @@ def selective_reroute(
             continue
 
         new_ar = ActiveRoute.from_vehicle_route(vr, route_id=route_id)
-        # Atomically replace in RouteManager
-        try:
-            rm.remove(route_id)
-        except KeyError:
-            pass
+        # Atomically replace in RouteManager: remove all prior routes for this vehicle
+        for old_r in existing_routes:
+            try:
+                rm.remove(old_r.route_id)
+            except KeyError:
+                pass
 
         try:
             registered_ar = rm.register(new_ar, graph)

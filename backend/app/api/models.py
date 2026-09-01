@@ -131,6 +131,7 @@ class RouteOut(BaseModel):
     total_travel_time: float
     estimated_arrival: Optional[float]
     geometry: Optional[list[list[float]]] = None
+    status: str = "ACTIVE"
 
 
 
@@ -252,6 +253,7 @@ class GeographicRouteOut(BaseModel):
         default_factory=list,
         description="Ordered sequence of [latitude, longitude] pairs",
     )
+    status: str = "ACTIVE"
 
 
 class GeographicDepotOut(BaseModel):

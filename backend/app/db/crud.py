@@ -175,7 +175,21 @@ def save_optimization_run(
     """Save optimization run metadata, convergence history, and active routes."""
     opt_id = str(uuid.uuid4())
 
-    conv_hist = {str(k): float(v) for k, v in result.convergence_history.items()}
+    conv_hist_raw = getattr(result, "convergence_history", {}) or {}
+    if isinstance(conv_hist_raw, dict):
+        conv_hist = {str(k): float(v) for k, v in conv_hist_raw.items()}
+    else:
+        conv_hist = {}
+
+    best_fitness = getattr(result, "best_fitness", None)
+    if best_fitness is None:
+        best_fitness = getattr(result, "post_incident_fitness", 0.0)
+
+    is_feasible = getattr(result, "is_feasible", None)
+    if is_feasible is None and hasattr(result, "best_solution"):
+        is_feasible = getattr(result.best_solution, "is_feasible", True)
+    if is_feasible is None:
+        is_feasible = True
 
     opt_run = OptimizationRunModel(
         id=opt_id,
@@ -186,18 +200,18 @@ def save_optimization_run(
         w_time=float(config.get("w_time", 1.0)),
         w_distance=float(config.get("w_distance", 0.5)),
         w_congestion=float(config.get("w_congestion", 0.3)),
-        best_fitness=float(result.best_fitness),
-        is_feasible=bool(result.best_solution.is_feasible),
-        n_iterations_run=int(result.n_iterations_run),
-        stopped_early=bool(result.stopped_early),
+        best_fitness=float(best_fitness or 0.0),
+        is_feasible=bool(is_feasible),
+        n_iterations_run=int(getattr(result, "n_iterations_run", 0)),
+        stopped_early=bool(getattr(result, "stopped_early", False)),
         pre_repair_fitness=(
             float(result.pre_repair_fitness)
-            if result.pre_repair_fitness is not None
+            if getattr(result, "pre_repair_fitness", None) is not None
             else None
         ),
         post_repair_fitness=(
             float(result.post_repair_fitness)
-            if result.post_repair_fitness is not None
+            if getattr(result, "post_repair_fitness", None) is not None
             else None
         ),
         convergence_history=conv_hist,

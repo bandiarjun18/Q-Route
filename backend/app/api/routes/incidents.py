@@ -63,6 +63,7 @@ _SEVERITY_MAP: dict[str, IncidentSeverity] = {
 
 
 def _build_route_out(ar: ActiveRoute) -> RouteOut:
+    status_val = (ar.status.value if hasattr(ar.status, "value") else str(ar.status or "ACTIVE")).upper()
     return RouteOut(
         vehicle_id=ar.vehicle_id,
         depot_node=ar.depot_node,
@@ -71,6 +72,7 @@ def _build_route_out(ar: ActiveRoute) -> RouteOut:
         total_distance=ar.total_distance,
         total_travel_time=ar.total_travel_time,
         estimated_arrival=ar.estimated_arrival,
+        status=status_val,
     )
 
 
@@ -187,11 +189,24 @@ def register_incident(
                 net_id = active_net.id
                 state.network_db_id = net_id
         if net_id:
-            # Save incident record
+            opt_run_id = state.opt_run_db_id
+            if reroute_res.affected_vehicle_ids:
+                # Persist the new post-incident optimization run and updated active routes
+                opt_model = save_optimization_run(
+                    db=db,
+                    network_id=net_id,
+                    config=state.last_qpso_config or {},
+                    result=reroute_res,
+                    active_routes=rm.list_active(),
+                )
+                opt_run_id = opt_model.id
+                state.opt_run_db_id = opt_run_id
+
+            # Save incident record associated with the optimization run
             save_incident(
                 db=db,
                 network_id=net_id,
-                optimization_run_id=state.opt_run_db_id,
+                optimization_run_id=opt_run_id,
                 edge_u=str(u),
                 edge_v=str(v),
                 incident_type=inc_type.name,

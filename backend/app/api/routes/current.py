@@ -74,6 +74,8 @@ def _build_route_out(ar: ActiveRoute, tg: Optional[TransportGraph] = None) -> Ro
         if is_geo and len(coords) == len(ar.node_sequence) and len(coords) > 0:
             geometry = coords
 
+    status_val = (ar.status.value if hasattr(ar.status, "value") else str(ar.status or "ACTIVE")).upper()
+
     return RouteOut(
         vehicle_id=ar.vehicle_id,
         depot_node=ar.depot_node,
@@ -83,6 +85,7 @@ def _build_route_out(ar: ActiveRoute, tg: Optional[TransportGraph] = None) -> Ro
         total_travel_time=ar.total_travel_time,
         estimated_arrival=ar.estimated_arrival,
         geometry=geometry,
+        status=status_val,
     )
 
 
@@ -151,6 +154,8 @@ def get_geographic_routes(
                 all_latitudes.append(pt[0])
                 all_longitudes.append(pt[1])
 
+        status_val = (ar.status.value if hasattr(ar.status, "value") else str(ar.status or "ACTIVE")).upper()
+
         geo_routes.append(
             GeographicRouteOut(
                 vehicle_id=ar.vehicle_id,
@@ -161,6 +166,7 @@ def get_geographic_routes(
                 total_travel_time=ar.total_travel_time,
                 estimated_arrival=ar.estimated_arrival,
                 coordinates=coords,
+                status=status_val,
             )
         )
 
