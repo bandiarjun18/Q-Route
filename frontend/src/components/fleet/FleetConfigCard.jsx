@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../ui/Card.jsx'
 import { Button } from '../ui/Button.jsx'
 import { FleetIcon, UsersIcon, CheckCircleIcon, RefreshIcon } from '../common/Icons.jsx'
@@ -13,10 +14,64 @@ export function FleetConfigCard({
   successMessage,
   vehiclesCount,
   customersCount,
+  isGeographic = false,
 }) {
+  const [selectedGeoPreset, setSelectedGeoPreset] = useState('osm_canonical')
+  const [selectedSyntheticPreset, setSelectedSyntheticPreset] = useState('small')
+
+  const selectedPreset = isGeographic ? selectedGeoPreset : selectedSyntheticPreset
+
   const handlePresetSelect = (e) => {
     const preset = e.target.value
-    if (preset === 'small') {
+    if (isGeographic) {
+      setSelectedGeoPreset(preset)
+    } else {
+      setSelectedSyntheticPreset(preset)
+    }
+    if (preset === 'osm_canonical') {
+      onApplyPreset({
+        vehicles: [
+          { vehicle_id: 0, capacity: 50.0, depot_node: 1001 },
+          { vehicle_id: 1, capacity: 45.0, depot_node: 1001 },
+        ],
+        customers: [
+          { customer_id: 0, location_node: 1002, demand: 12.0 },
+          { customer_id: 1, location_node: 1003, demand: 10.0 },
+          { customer_id: 2, location_node: 1004, demand: 14.0 },
+          { customer_id: 3, location_node: 1005, demand: 8.0 },
+          { customer_id: 4, location_node: 1006, demand: 11.0 },
+          { customer_id: 5, location_node: 1007, demand: 9.0 },
+        ],
+      })
+    } else if (preset === 'osm_express') {
+      onApplyPreset({
+        vehicles: [
+          { vehicle_id: 0, capacity: 50.0, depot_node: 1001 },
+          { vehicle_id: 1, capacity: 50.0, depot_node: 1001 },
+        ],
+        customers: [
+          { customer_id: 0, location_node: 1002, demand: 12.0 },
+          { customer_id: 1, location_node: 1003, demand: 10.0 },
+          { customer_id: 2, location_node: 1004, demand: 14.0 },
+        ],
+      })
+    } else if (preset === 'osm_heavy') {
+      onApplyPreset({
+        vehicles: [
+          { vehicle_id: 0, capacity: 50.0, depot_node: 1001 },
+          { vehicle_id: 1, capacity: 45.0, depot_node: 1001 },
+          { vehicle_id: 2, capacity: 45.0, depot_node: 1001 },
+        ],
+        customers: [
+          { customer_id: 0, location_node: 1002, demand: 12.0 },
+          { customer_id: 1, location_node: 1003, demand: 10.0 },
+          { customer_id: 2, location_node: 1004, demand: 14.0 },
+          { customer_id: 3, location_node: 1005, demand: 8.0 },
+          { customer_id: 4, location_node: 1006, demand: 11.0 },
+          { customer_id: 5, location_node: 1007, demand: 9.0 },
+        ],
+      })
+    } else if (preset === 'small') {
       onApplyPreset({
         vehicles: [
           { vehicle_id: 0, capacity: 50.0, depot_node: 0 },
@@ -75,7 +130,9 @@ export function FleetConfigCard({
         <div>
           <CardTitle>Fleet Configuration</CardTitle>
           <CardDescription>
-            Configure vehicles and customer delivery demand before running route optimization.
+            {isGeographic
+              ? 'Configure vehicles and delivery points on the Real-World OpenStreetMap network.'
+              : 'Configure vehicles and customer delivery demand before running route optimization.'}
           </CardDescription>
         </div>
 
@@ -85,13 +142,23 @@ export function FleetConfigCard({
           <select
             aria-label="Load fleet preset"
             onChange={handlePresetSelect}
-            defaultValue="small"
+            value={selectedPreset}
             disabled={isLoading}
             className="h-8 bg-slate-950 border border-slate-800 rounded-lg px-2.5 text-xs text-slate-200 focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer disabled:opacity-50"
           >
-            <option value="small">Small Fleet (2 Veh / 3 Cust)</option>
-            <option value="standard">Standard Fleet (4 Veh / 6 Cust)</option>
-            <option value="heavy">Heavy Fleet (6 Veh / 8 Cust)</option>
+            {isGeographic ? (
+              <>
+                <option value="osm_canonical">Real-World OSM Fleet (2 Veh / 6 Cust @ Depot 1001)</option>
+                <option value="osm_express">Express Logistics (2 Veh / 3 Cust @ Depot 1001)</option>
+                <option value="osm_heavy">Commercial District (3 Veh / 6 Cust @ Depot 1001)</option>
+              </>
+            ) : (
+              <>
+                <option value="small">Small Fleet (2 Veh / 3 Cust)</option>
+                <option value="standard">Standard Fleet (4 Veh / 6 Cust)</option>
+                <option value="heavy">Heavy Fleet (6 Veh / 8 Cust)</option>
+              </>
+            )}
           </select>
         </div>
       </CardHeader>

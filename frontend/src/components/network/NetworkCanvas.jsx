@@ -1,21 +1,104 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../ui/Card.jsx'
 import { Button } from '../ui/Button.jsx'
 import { Badge } from '../ui/Badge.jsx'
 import { NetworkIcon, MapPinIcon } from '../common/Icons.jsx'
+import { OSMMapView } from '../routes/OSMMapView.jsx'
 
 export function NetworkCanvas({ networkData, onGenerate, isLoading, className = '' }) {
   const [selectedNode, setSelectedNode] = useState(null)
   const [zoomLevel, setZoomLevel] = useState(1)
+  const [userViewMode, setUserViewMode] = useState(null)
 
   const nodes = networkData?.nodes || []
   const edges = networkData?.edges || []
   const gridSize = networkData?.grid_size_km || 10
 
+  // Detect geographic OSM network
+  const isGeographic = nodes.some((n) => n.lat != null && n.lon != null)
+
+  const viewMode = userViewMode !== null ? userViewMode : (isGeographic ? 'map' : 'canvas')
+
+  // Prepare geographic data structure for OSMMapView
+  const geoData = useMemo(() => {
+    if (!isGeographic || !networkData?.nodes?.length) return null
+
+    const rawNodes = networkData.nodes
+    const rawEdges = networkData.edges || []
+
+    const depots = rawNodes
+      .filter((n) => n.node_type === 'depot')
+      .map((n) => ({
+        id: n.id,
+        latitude: n.lat != null ? n.lat : n.y,
+        longitude: n.lon != null ? n.lon : n.x,
+      }))
+
+    const customers = rawNodes
+      .filter((n) => n.node_type === 'customer')
+      .map((n) => ({
+        id: n.id,
+        location_node: n.id,
+        latitude: n.lat != null ? n.lat : n.y,
+        longitude: n.lon != null ? n.lon : n.x,
+        demand: n.demand || 0,
+      }))
+
+    const networkEdges = rawEdges.map((e) => {
+      const uNode = rawNodes.find((n) => n.id === e.u)
+      const vNode = rawNodes.find((n) => n.id === e.v)
+      const uLat = uNode ? (uNode.lat != null ? uNode.lat : uNode.y) : null
+      const uLon = uNode ? (uNode.lon != null ? uNode.lon : uNode.x) : null
+      const vLat = vNode ? (vNode.lat != null ? vNode.lat : vNode.y) : null
+      const vLon = vNode ? (vNode.lon != null ? vNode.lon : vNode.x) : null
+
+      const coords =
+        uLat != null && uLon != null && vLat != null && vLon != null
+          ? [
+              [uLat, uLon],
+              [vLat, vLon],
+            ]
+          : []
+
+      return {
+        u: e.u,
+        v: e.v,
+        distance: e.distance,
+        road_status: e.road_status,
+        congestion_factor: e.congestion_factor,
+        coordinates: coords,
+      }
+    })
+
+    return {
+      is_geographic: true,
+      nodes: rawNodes,
+      depots,
+      customers,
+      networkEdges,
+    }
+  }, [networkData, isGeographic])
+
   // Coordinate mapping function for SVG viewBox 0..1000
   const mapCoord = (x, y) => {
     const padding = 55
     const usable = 1000 - padding * 2
+
+    if (isGeographic && nodes.length > 0) {
+      const xVals = nodes.map((n) => (n.lon != null ? n.lon : n.x))
+      const yVals = nodes.map((n) => (n.lat != null ? n.lat : n.y))
+      const minX = Math.min(...xVals)
+      const maxX = Math.max(...xVals)
+      const minY = Math.min(...yVals)
+      const maxY = Math.max(...yVals)
+      const spanX = maxX - minX || 0.0001
+      const spanY = maxY - minY || 0.0001
+
+      const px = padding + ((x - minX) / spanX) * usable
+      const py = 1000 - (padding + ((y - minY) / spanY) * usable)
+      return { x: px, y: py }
+    }
+
     const px = padding + (x / gridSize) * usable
     const py = 1000 - (padding + (y / gridSize) * usable)
     return { x: px, y: py }
@@ -33,10 +116,38 @@ export function NetworkCanvas({ networkData, onGenerate, isLoading, className = 
         <div>
           <CardTitle>Transportation Network Map</CardTitle>
           <CardDescription>
-            Spatial topological graph visualization with node classifications and road segments
+            {isGeographic && viewMode === 'map'
+              ? 'Interactive OpenStreetMap urban road network visualization'
+              : 'Spatial topological graph visualization with node classifications and road segments'}
           </CardDescription>
         </div>
         <div className="flex items-center gap-2">
+          {nodes.length > 0 && isGeographic && (
+            <div className="flex items-center bg-slate-900 border border-slate-800 rounded-lg p-0.5 text-xs">
+              <button
+                type="button"
+                onClick={() => setUserViewMode('map')}
+                className={`px-2.5 py-1 rounded-md transition-colors cursor-pointer font-medium ${
+                  viewMode === 'map'
+                    ? 'bg-blue-600 text-white shadow-xs'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                🗺️ OSM Map
+              </button>
+              <button
+                type="button"
+                onClick={() => setUserViewMode('canvas')}
+                className={`px-2.5 py-1 rounded-md transition-colors cursor-pointer font-medium ${
+                  viewMode === 'canvas'
+                    ? 'bg-blue-600 text-white shadow-xs'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                📊 Schematic
+              </button>
+            </div>
+          )}
           {nodes.length > 0 && (
             <Badge variant="info" size="sm">
               {nodes.length} Nodes · {edges.length} Edges
@@ -77,16 +188,22 @@ export function NetworkCanvas({ networkData, onGenerate, isLoading, className = 
                 </div>
               </div>
             </div>
+          ) : viewMode === 'map' && isGeographic && geoData ? (
+            <OSMMapView geoData={geoData} className="h-full" />
           ) : (
             <>
               {/* Top Controls Toolbar */}
               <div className="px-4 py-2.5 flex items-center justify-between gap-3 text-xs text-slate-400 border-b border-slate-800/80 bg-slate-950/90 backdrop-blur-xs z-10">
                 <div className="flex items-center gap-2">
                   <MapPinIcon className="w-4 h-4 text-blue-400" />
-                  <span className="font-medium text-slate-200">Topological Coordinate Space</span>
+                  <span className="font-medium text-slate-200">
+                    {isGeographic ? 'Normalized Topological Space' : 'Topological Coordinate Space'}
+                  </span>
                   <span className="text-slate-600">·</span>
                   <span className="text-slate-400 font-mono">
-                    Boundary: [0..{gridSize} km × 0..{gridSize} km]
+                    {isGeographic
+                      ? 'Real-World OSM Road Network'
+                      : `Boundary: [0..${gridSize} km × 0..${gridSize} km]`}
                   </span>
                 </div>
 
@@ -149,8 +266,8 @@ export function NetworkCanvas({ networkData, onGenerate, isLoading, className = 
                       const u = nodes.find((n) => n.id === edge.u)
                       const v = nodes.find((n) => n.id === edge.v)
                       if (!u || !v) return null
-                      const p1 = mapCoord(u.x, u.y)
-                      const p2 = mapCoord(v.x, v.y)
+                      const p1 = mapCoord(u.lon != null ? u.lon : u.x, u.lat != null ? u.lat : u.y)
+                      const p2 = mapCoord(v.lon != null ? v.lon : v.x, v.lat != null ? v.lat : v.y)
                       const isClosed = edge.road_status === 'closed'
                       const isSelectedConnected =
                         selectedNode && (selectedNode.id === edge.u || selectedNode.id === edge.v)
@@ -180,7 +297,9 @@ export function NetworkCanvas({ networkData, onGenerate, isLoading, className = 
 
                     {/* 2. Graph Nodes */}
                     {nodes.map((node) => {
-                      const pt = mapCoord(node.x, node.y)
+                      const nx = node.lon != null ? node.lon : node.x
+                      const ny = node.lat != null ? node.lat : node.y
+                      const pt = mapCoord(nx, ny)
                       const isDepot = node.node_type === 'depot'
                       const isCust = node.node_type === 'customer'
                       const isSelected = selectedNode?.id === node.id
@@ -232,7 +351,9 @@ export function NetworkCanvas({ networkData, onGenerate, isLoading, className = 
                             fontSize="8"
                             fontFamily="monospace"
                           >
-                            ({node.x.toFixed(1)},{node.y.toFixed(1)})
+                            {isGeographic
+                              ? `(${Number(ny).toFixed(3)}, ${Number(nx).toFixed(3)})`
+                              : `(${Number(nx).toFixed(1)}, ${Number(ny).toFixed(1)})`}
                           </text>
                         </g>
                       )
@@ -268,7 +389,12 @@ export function NetworkCanvas({ networkData, onGenerate, isLoading, className = 
                     </div>
 
                     <div className="text-slate-300 space-y-1 font-mono text-[11px]">
-                      <div>Coordinates: ({selectedNode.x.toFixed(2)}, {selectedNode.y.toFixed(2)}) km</div>
+                      <div>
+                        Coordinates: (
+                        {Number(selectedNode.lat != null ? selectedNode.lat : selectedNode.y).toFixed(4)},{' '}
+                        {Number(selectedNode.lon != null ? selectedNode.lon : selectedNode.x).toFixed(4)}
+                        ){isGeographic ? ' WGS84' : ' km'}
+                      </div>
                       <div>Connected Edges: {getNodeConnectedEdges(selectedNode.id).length}</div>
                       {selectedNode.node_type === 'depot' && (
                         <div className="text-amber-400 font-semibold pt-0.5">Primary Dispatch Depot</div>
@@ -298,7 +424,7 @@ export function NetworkCanvas({ networkData, onGenerate, isLoading, className = 
                   </span>
                 </div>
                 <div className="text-xs text-slate-500 font-mono">
-                  Coordinate Domain: [0..{gridSize} km]
+                  {isGeographic ? 'Domain: Bangalore Urban (WGS84)' : `Coordinate Domain: [0..${gridSize} km]`}
                 </div>
               </div>
             </>

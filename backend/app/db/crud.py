@@ -334,3 +334,28 @@ def delete_network(db: Session, network_id: str) -> bool:
     db.commit()
     return True
 
+
+def get_fleet_for_network(
+    db: Session, network_id: str
+) -> tuple[list[FleetVehicleModel], list[CustomerModel]]:
+    """Retrieve fleet vehicles and customer orders saved for a network."""
+    veh_stmt = select(FleetVehicleModel).where(
+        FleetVehicleModel.network_id == network_id
+    )
+    cust_stmt = select(CustomerModel).where(
+        CustomerModel.network_id == network_id
+    )
+    vehs = list(db.execute(veh_stmt).scalars().all())
+    custs = list(db.execute(cust_stmt).scalars().all())
+    return vehs, custs
+
+
+def get_network_nodes_and_edges(
+    db: Session, network_id: str
+) -> tuple[list[NodeModel], list[EdgeModel]]:
+    """Retrieve nodes and edges for a given network."""
+    node_stmt = select(NodeModel).where(NodeModel.network_id == network_id)
+    edge_stmt = select(EdgeModel).where(EdgeModel.network_id == network_id)
+    nodes = list(db.execute(node_stmt).scalars().all())
+    edges = list(db.execute(edge_stmt).scalars().all())
+    return nodes, edges

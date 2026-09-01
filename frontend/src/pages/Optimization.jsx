@@ -1,9 +1,9 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { PageHeader } from '../components/ui/PageHeader.jsx'
 import { OptimizationConfigForm } from '../components/optimization/OptimizationConfigForm.jsx'
 import { OptimizationSummaryCards } from '../components/optimization/OptimizationSummaryCards.jsx'
 import { OptimizationResultCard } from '../components/optimization/OptimizationResultCard.jsx'
-import { runOptimization } from '../api/qroute.js'
+import { runOptimization, getCurrentOptimization } from '../api/qroute.js'
 
 const DEFAULT_OPTIMIZE_PARAMS = {
   n_particles: 20,
@@ -20,6 +20,24 @@ export function Optimization() {
   const [result, setResult] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState(null)
+
+  useEffect(() => {
+    let isMounted = true
+    async function loadLatestOptimization() {
+      try {
+        const data = await getCurrentOptimization()
+        if (isMounted && data) {
+          setResult(data)
+        }
+      } catch {
+        // No optimization run yet
+      }
+    }
+    loadLatestOptimization()
+    return () => {
+      isMounted = false
+    }
+  }, [])
 
   const handleParamChange = (field, value) => {
     setParams((prev) => ({

@@ -3,10 +3,10 @@ import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '../ui/Card
 import { Button } from '../ui/Button.jsx'
 import { Input } from '../ui/Input.jsx'
 
-export function AddVehicleModal({ isOpen, onClose, onAdd, defaultNextId = 0 }) {
+export function AddVehicleModal({ isOpen, onClose, onAdd, defaultNextId = 0, defaultDepotNode = '0' }) {
   const [vehicleId, setVehicleId] = useState(defaultNextId)
   const [capacity, setCapacity] = useState('50.0')
-  const [depotNode, setDepotNode] = useState('0')
+  const [depotNode, setDepotNode] = useState(String(defaultDepotNode))
   const [error, setError] = useState(null)
 
   if (!isOpen) return null
@@ -14,22 +14,22 @@ export function AddVehicleModal({ isOpen, onClose, onAdd, defaultNextId = 0 }) {
   const handleSubmit = (e) => {
     e.preventDefault()
     const capNum = Number(capacity)
-    const depotNum = Number(depotNode)
+    const depotTrimmed = String(depotNode).trim()
     const idNum = Number(vehicleId)
 
     if (isNaN(capNum) || capNum <= 0) {
       setError('Capacity must be a positive number greater than 0.')
       return
     }
-    if (isNaN(depotNum) || depotNum < 0) {
-      setError('Depot Node must be a valid non-negative integer.')
+    if (!depotTrimmed) {
+      setError('Depot Node ID cannot be empty.')
       return
     }
 
     onAdd({
-      vehicle_id: isNaN(idNum) ? defaultNextId : idNum,
+      vehicle_id: isNaN(idNum) ? vehicleId : idNum,
       capacity: capNum,
-      depot_node: depotNum,
+      depot_node: isNaN(Number(depotTrimmed)) ? depotTrimmed : Number(depotTrimmed),
     })
     onClose()
   }

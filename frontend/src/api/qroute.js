@@ -30,6 +30,22 @@ export async function healthCheck() {
 }
 
 /**
+ * Retrieve currently active network topology (GET /network)
+ */
+export async function getNetwork() {
+  const res = await fetch(`${BASE_URL}/network`)
+  return handleResponse(res)
+}
+
+/**
+ * Retrieve currently active fleet configuration (GET /fleet)
+ */
+export async function getCurrentFleet() {
+  const res = await fetch(`${BASE_URL}/fleet`)
+  return handleResponse(res)
+}
+
+/**
  * Generate a synthetic road network (POST /network)
  */
 export async function createNetwork(params = {}) {
@@ -105,22 +121,40 @@ export async function getCurrentRoutes() {
 }
 
 /**
+ * Retrieve latest optimization results (GET /optimize/current)
+ */
+export async function getCurrentOptimization() {
+  const res = await fetch(`${BASE_URL}/optimize/current`)
+  return handleResponse(res)
+}
+
+/**
  * Register a road incident and trigger dynamic re-optimization (POST /incidents)
  */
 export async function registerIncident(payload) {
+  const edgeU = payload.edge_u
+  const edgeV = payload.edge_v
   const res = await fetch(`${BASE_URL}/incidents`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      edge_u: Number(payload.edge_u),
-      edge_v: Number(payload.edge_v),
+      edge_u: isNaN(Number(edgeU)) ? String(edgeU) : Number(edgeU),
+      edge_v: isNaN(Number(edgeV)) ? String(edgeV) : Number(edgeV),
       incident_type: payload.incident_type || 'ACCIDENT',
       severity: payload.severity || 'MEDIUM',
       description: payload.description || '',
     }),
   })
+  return handleResponse(res)
+}
+
+/**
+ * Retrieve latest registered incident state (GET /incidents/current)
+ */
+export async function getCurrentIncident() {
+  const res = await fetch(`${BASE_URL}/incidents/current`)
   return handleResponse(res)
 }
 
@@ -206,14 +240,18 @@ export async function initializeE2EDemo() {
 
 export default {
   healthCheck,
+  getNetwork,
   createNetwork,
   loadOSMPresetNetwork,
+  getCurrentFleet,
   configureFleet,
   loadGeographicFleetPreset,
   configureGeographicFleet,
   runOptimization,
+  getCurrentOptimization,
   getCurrentRoutes,
   registerIncident,
+  getCurrentIncident,
   getConvergenceHistory,
   getGeographicRoutes,
   initializeE2EDemo,

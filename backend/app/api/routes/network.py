@@ -11,19 +11,161 @@ incidents, routes) to ensure consistency.
 from __future__ import annotations
 
 import logging
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.api.dependencies import get_state
-from app.api.models import EdgeOut, NetworkRequest, NetworkResponse, NodeOut
+from app.api.dependencies import get_state, require_graph
+from app.api.models import EdgeOut, NetworkRequest, NetworkResponse, NodeOut, OSMNetworkPresetRequest
 from app.api.state import AppState
-from app.db.crud import save_network
+from app.db.crud import get_active_network, get_network_nodes_and_edges, save_network
 from app.db.session import get_db
 from app.graph.generator import generate_synthetic_network
 from app.graph.model import TransportGraph
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/network", tags=["Network"])
+
+
+@router.get(
+    "",
+    response_model=NetworkResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Get currently active transport network",
+    description="Retrieves the currently loaded transport network nodes, edges, and topology.",
+)
+@router.get(
+    "/current",
+    response_model=NetworkResponse,
+    status_code=status.HTTP_200_OK,
+    include_in_schema=False,
+)
+def get_current_network(
+    state: AppState = Depends(get_state),
+    db: Session = Depends(get_db),
+) -> NetworkResponse:
+    """Return active transport network topology and metadata."""
+    # 1. In-memory graph available
+    if state.graph is not None:
+        tg = state.graph
+        g = tg.graph
+
+        node_types = {n: d.get("node_type", "intersection") for n, d in g.nodes(data=True)}
+        n_depots_actual = sum(1 for t in node_types.values() if t == "depot")
+        n_customers_actual = sum(1 for t in node_types.values() if t == "customer")
+        n_intersections = sum(1 for t in node_types.values() if t == "intersection")
+
+        nodes_out = [
+            NodeOut(
+                id=n,
+                node_type=d.get("node_type", "intersection"),
+                x=float(d.get("x", 0.0)),
+                y=float(d.get("y", 0.0)),
+                lat=float(d["lat"]) if "lat" in d and d["lat"] is not None else None,
+                lon=float(d["lon"]) if "lon" in d and d["lon"] is not None else None,
+            )
+            for n, d in g.nodes(data=True)
+        ]
+
+        edges_out = [
+            EdgeOut(
+                u=u,
+                v=v,
+                distance=float(data.get("distance", 0.0)),
+                base_travel_time=float(data.get("base_travel_time", 0.0)),
+                congestion_factor=float(data.get("congestion_factor", 1.0)),
+                road_status=str(data.get("road_status", "open")),
+            )
+            for u, v, data in g.edges(data=True)
+        ]
+
+        meta = state.network_meta or {}
+        return NetworkResponse(
+            n_nodes=tg.node_count(),
+            n_edges=tg.edge_count(),
+            n_depots=n_depots_actual,
+            n_customers=n_customers_actual,
+            n_intersections=n_intersections,
+            seed=meta.get("seed", 42),
+            nodes=nodes_out,
+            edges=edges_out,
+        )
+
+    # 2. Database fallback if in-memory graph is None
+    active_net = get_active_network(db)
+    if active_net:
+        db_nodes, db_edges = get_network_nodes_and_edges(db, active_net.id)
+        if db_nodes:
+            tg = TransportGraph()
+            is_osm = any(k in active_net.name.lower() for k in ("osm", "real-world", "bangalore"))
+            nodes_out = []
+            for nd in db_nodes:
+                lat = float(nd.y) if is_osm else None
+                lon = float(nd.x) if is_osm else None
+                tg.add_node(
+                    node_id=nd.node_id,
+                    x=float(nd.x),
+                    y=float(nd.y),
+                    node_type=nd.node_type,
+                    lat=lat,
+                    lon=lon,
+                )
+                nodes_out.append(
+                    NodeOut(
+                        id=nd.node_id,
+                        node_type=nd.node_type,
+                        x=float(nd.x),
+                        y=float(nd.y),
+                        lat=lat,
+                        lon=lon,
+                    )
+                )
+
+            edges_out = []
+            for ed in db_edges:
+                tg.add_edge(
+                    u=ed.u,
+                    v=ed.v,
+                    distance=float(ed.distance),
+                    base_travel_time=float(ed.base_travel_time),
+                    congestion_factor=float(ed.congestion_factor),
+                    road_status=str(ed.road_status),
+                )
+                edges_out.append(
+                    EdgeOut(
+                        u=ed.u,
+                        v=ed.v,
+                        distance=float(ed.distance),
+                        base_travel_time=float(ed.base_travel_time),
+                        congestion_factor=float(ed.congestion_factor),
+                        road_status=str(ed.road_status),
+                    )
+                )
+
+            state.graph = tg
+            state.network_db_id = active_net.id
+            state.network_meta = {
+                "source": "PostgreSQL",
+                "name": active_net.name,
+                "n_nodes": active_net.n_nodes,
+                "n_edges": active_net.n_edges,
+                "seed": active_net.seed,
+            }
+
+            return NetworkResponse(
+                n_nodes=active_net.n_nodes,
+                n_edges=active_net.n_edges,
+                n_depots=active_net.n_depots,
+                n_customers=active_net.n_customers,
+                n_intersections=active_net.n_intersections,
+                seed=active_net.seed,
+                nodes=nodes_out,
+                edges=edges_out,
+            )
+
+    raise HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND,
+        detail="No active network loaded. Call POST /network or POST /network/osm-preset first.",
+    )
 
 
 @router.post(

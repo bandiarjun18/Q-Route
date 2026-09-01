@@ -13,15 +13,114 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.api.dependencies import require_graph
+from app.api.dependencies import get_state, require_graph
 from app.api.models import CustomerIn, FleetRequest, FleetResponse, VehicleIn
 from app.api.state import AppState
-from app.db.crud import get_active_network, save_fleet
+from app.db.crud import get_active_network, get_fleet_for_network, save_fleet
 from app.db.session import get_db
 from app.vrp.models import Customer, Vehicle, VRPProblem
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/fleet", tags=["Fleet"])
+
+
+@router.get(
+    "",
+    response_model=FleetResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Get current fleet configuration",
+    description="Retrieves the current fleet vehicles and customer orders stored in application state.",
+)
+@router.get(
+    "/current",
+    response_model=FleetResponse,
+    status_code=status.HTTP_200_OK,
+    include_in_schema=False,
+)
+def get_current_fleet(
+    state: AppState = Depends(get_state),
+    db: Session = Depends(get_db),
+) -> FleetResponse:
+    """Return active fleet vehicles and customer delivery orders."""
+    # 1. In-memory problem available
+    if state.problem is not None:
+        problem = state.problem
+        vehicles_out = [
+            VehicleIn(
+                vehicle_id=v.vehicle_id,
+                capacity=v.capacity,
+                depot_node=v.depot_node,
+            )
+            for v in problem.vehicles
+        ]
+        customers_out = [
+            CustomerIn(
+                customer_id=c.customer_id,
+                location_node=c.location_node,
+                demand=c.demand,
+            )
+            for c in problem.customers
+        ]
+        return FleetResponse(
+            n_vehicles=len(problem.vehicles),
+            n_customers=len(problem.customers),
+            vehicles=vehicles_out,
+            customers=customers_out,
+        )
+
+    # 2. Fallback to PostgreSQL database
+    net_id = state.network_db_id
+    if not net_id:
+        active_net = get_active_network(db)
+        if active_net:
+            net_id = active_net.id
+            state.network_db_id = net_id
+    if net_id:
+        db_vehs, db_custs = get_fleet_for_network(db, net_id)
+        if db_vehs and db_custs:
+            vehicles_out = []
+            for v in db_vehs:
+                depot = int(v.depot_node) if str(v.depot_node).isdigit() else str(v.depot_node)
+                veh_id = int(v.vehicle_id) if str(v.vehicle_id).isdigit() else str(v.vehicle_id)
+                vehicles_out.append(
+                    VehicleIn(
+                        vehicle_id=veh_id,
+                        capacity=float(v.capacity),
+                        depot_node=depot,
+                    )
+                )
+
+            customers_out = []
+            for c in db_custs:
+                loc = int(c.location_node) if str(c.location_node).isdigit() else str(c.location_node)
+                cust_id = int(c.customer_id) if str(c.customer_id).isdigit() else str(c.customer_id)
+                customers_out.append(
+                    CustomerIn(
+                        customer_id=cust_id,
+                        location_node=loc,
+                        demand=float(c.demand),
+                    )
+                )
+
+            if state.graph is not None:
+                try:
+                    vehs_obj = [Vehicle(vehicle_id=v.vehicle_id, capacity=v.capacity, depot_node=v.depot_node) for v in vehicles_out]
+                    custs_obj = [Customer(customer_id=c.customer_id, location_node=c.location_node, demand=c.demand) for c in customers_out]
+                    state.problem = VRPProblem(graph=state.graph, vehicles=vehs_obj, customers=custs_obj)
+                except Exception:
+                    pass
+
+            return FleetResponse(
+                n_vehicles=len(vehicles_out),
+                n_customers=len(customers_out),
+                vehicles=vehicles_out,
+                customers=customers_out,
+            )
+
+    raise HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND,
+        detail="No fleet configured. Call POST /fleet first.",
+    )
 
 
 @router.post(
@@ -59,45 +158,55 @@ def configure_fleet(
     assert graph is not None
     g = graph.graph
 
-    # ── Validate depot nodes ─────────────────────────────────────────────
+    # ── Validate & normalize depot nodes ─────────────────────────────────
+    vehicles: list[Vehicle] = []
     for v in body.vehicles:
-        if not g.has_node(v.depot_node):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=(
-                    f"Vehicle {v.vehicle_id!r}: depot_node {v.depot_node!r} "
-                    f"does not exist in the current network."
-                ),
+        depot = v.depot_node
+        if not g.has_node(depot):
+            if isinstance(depot, int) and g.has_node(str(depot)):
+                depot = str(depot)
+            elif isinstance(depot, str) and depot.isdigit() and g.has_node(int(depot)):
+                depot = int(depot)
+            else:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=(
+                        f"Vehicle {v.vehicle_id!r}: depot_node {v.depot_node!r} "
+                        f"does not exist in the current network."
+                    ),
+                )
+        vehicles.append(
+            Vehicle(
+                vehicle_id=v.vehicle_id,
+                capacity=v.capacity,
+                depot_node=depot,
             )
+        )
 
-    # ── Validate customer location nodes ─────────────────────────────────
+    # ── Validate & normalize customer location nodes ─────────────────────
+    customers: list[Customer] = []
     for c in body.customers:
-        if not g.has_node(c.location_node):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=(
-                    f"Customer {c.customer_id!r}: location_node "
-                    f"{c.location_node!r} does not exist in the current network."
-                ),
+        loc = c.location_node
+        if not g.has_node(loc):
+            if isinstance(loc, int) and g.has_node(str(loc)):
+                loc = str(loc)
+            elif isinstance(loc, str) and loc.isdigit() and g.has_node(int(loc)):
+                loc = int(loc)
+            else:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=(
+                        f"Customer {c.customer_id!r}: location_node "
+                        f"{c.location_node!r} does not exist in the current network."
+                    ),
+                )
+        customers.append(
+            Customer(
+                customer_id=c.customer_id,
+                location_node=loc,
+                demand=c.demand,
             )
-
-    # ── Build domain objects ─────────────────────────────────────────────
-    vehicles = [
-        Vehicle(
-            vehicle_id=v.vehicle_id,
-            capacity=v.capacity,
-            depot_node=v.depot_node,
         )
-        for v in body.vehicles
-    ]
-    customers = [
-        Customer(
-            customer_id=c.customer_id,
-            location_node=c.location_node,
-            demand=c.demand,
-        )
-        for c in body.customers
-    ]
 
     # ── Store state (clears optimization + incident state) ───────────────
     state.clear_from_fleet()

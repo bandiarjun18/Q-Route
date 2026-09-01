@@ -4,7 +4,6 @@ import { Button } from '../ui/Button.jsx'
 import { Input } from '../ui/Input.jsx'
 import { Select } from '../ui/Select.jsx'
 import { IncidentsIcon, RefreshIcon } from '../common/Icons.jsx'
-import { networkPreviewData } from '../../data/dashboardData.js'
 
 const INCIDENT_TYPES = [
   { value: 'ACCIDENT', label: 'Accident (Vehicle Collision)' },
@@ -23,30 +22,32 @@ const SEVERITIES = [
 
 export function IncidentRegistrationForm({
   onSubmitIncident,
+  availableEdges = [],
+  isNetworkLoading = false,
+  networkError = null,
   isLoading,
   error,
 }) {
-  // Extract available edges from network preview data
-  const availableEdges = networkPreviewData?.edges || [
-    { u: 3, v: 7 },
-    { u: 0, v: 1 },
-    { u: 1, v: 2 },
-    { u: 2, v: 5 },
-    { u: 5, v: 8 },
-  ]
-
-  const [selectedEdgeKey, setSelectedEdgeKey] = useState(
-    availableEdges.length > 0 ? `${availableEdges[0].u}-${availableEdges[0].v}` : '3-7'
-  )
+  const [userSelectedEdgeKey, setUserSelectedEdgeKey] = useState('')
   const [incidentType, setIncidentType] = useState('ACCIDENT')
   const [severity, setSeverity] = useState('MEDIUM')
   const [description, setDescription] = useState('Multi-vehicle collision on primary corridor')
 
+  // Derive the active edge key from available edges if no valid user selection exists
+  const activeEdgeKey =
+    userSelectedEdgeKey && availableEdges.some((e) => `${e.u}__${e.v}` === userSelectedEdgeKey)
+      ? userSelectedEdgeKey
+      : availableEdges.length > 0
+      ? `${availableEdges[0].u}__${availableEdges[0].v}`
+      : ''
+
   const handleSubmit = (e) => {
     e.preventDefault()
-    const [uStr, vStr] = selectedEdgeKey.split('-')
-    const edge_u = Number(uStr)
-    const edge_v = Number(vStr)
+    if (!activeEdgeKey) return
+
+    const [uStr, vStr] = activeEdgeKey.split('__')
+    const edge_u = isNaN(Number(uStr)) ? uStr : Number(uStr)
+    const edge_v = isNaN(Number(vStr)) ? vStr : Number(vStr)
 
     onSubmitIncident({
       edge_u,
@@ -57,8 +58,12 @@ export function IncidentRegistrationForm({
     })
   }
 
-  const handleSimulatePreset = (type, sev, u, v, desc) => {
-    setSelectedEdgeKey(`${u}-${v}`)
+  const handleSimulatePreset = (type, sev, desc, edgeIndex = 0) => {
+    if (availableEdges.length > 0) {
+      const idx = edgeIndex < availableEdges.length ? edgeIndex : 0
+      const targetEdge = availableEdges[idx]
+      setUserSelectedEdgeKey(`${targetEdge.u}__${targetEdge.v}`)
+    }
     setIncidentType(type)
     setSeverity(sev)
     setDescription(desc)
@@ -84,13 +89,12 @@ export function IncidentRegistrationForm({
               handleSimulatePreset(
                 'ROAD_CLOSURE',
                 'HIGH',
-                3,
-                7,
-                'Emergency road closure due to water main breach'
+                'Emergency road closure due to water main breach',
+                0
               )
             }
             className="text-xs h-7.5 px-2.5 text-slate-400 hover:text-slate-200 border border-slate-800 bg-slate-900/50"
-            disabled={isLoading}
+            disabled={isLoading || availableEdges.length === 0}
           >
             Closure Preset
           </Button>
@@ -103,13 +107,12 @@ export function IncidentRegistrationForm({
               handleSimulatePreset(
                 'ACCIDENT',
                 'CRITICAL',
-                0,
-                1,
-                'Severe multi-car crash blocking main outbound lane'
+                'Severe multi-car crash blocking main outbound lane',
+                availableEdges.length > 1 ? 1 : 0
               )
             }
             className="text-xs h-7.5 px-2.5 text-slate-400 hover:text-slate-200 border border-slate-800 bg-slate-900/50"
-            disabled={isLoading}
+            disabled={isLoading || availableEdges.length === 0}
           >
             Crash Preset
           </Button>
@@ -117,6 +120,21 @@ export function IncidentRegistrationForm({
       </CardHeader>
 
       <CardContent className="p-5 sm:p-6 space-y-5">
+        {/* Network Error or Empty Notice */}
+        {networkError && (
+          <div className="p-3.5 bg-rose-950/80 border border-rose-800/80 rounded-lg text-rose-300 text-xs sm:text-sm">
+            <span className="font-semibold">Network Error: </span>
+            {networkError}
+          </div>
+        )}
+
+        {!isNetworkLoading && availableEdges.length === 0 && !networkError && (
+          <div className="p-3.5 bg-amber-950/70 border border-amber-800/70 rounded-lg text-amber-300 text-xs sm:text-sm">
+            <span className="font-semibold">No Active Network: </span>
+            Please generate or load a transport network before registering road incidents.
+          </div>
+        )}
+
         {/* Error Feedback */}
         {error && (
           <div className="p-3.5 bg-rose-950/80 border border-rose-800/80 rounded-lg text-rose-300 text-xs sm:text-sm flex items-center justify-between gap-3">
@@ -140,16 +158,22 @@ export function IncidentRegistrationForm({
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <Select
               label="Affected Road Segment (Edge)"
-              value={selectedEdgeKey}
-              onChange={(e) => setSelectedEdgeKey(e.target.value)}
-              disabled={isLoading}
+              value={activeEdgeKey}
+              onChange={(e) => setUserSelectedEdgeKey(e.target.value)}
+              disabled={isLoading || isNetworkLoading || availableEdges.length === 0}
               required
             >
-              {availableEdges.map((edge, idx) => (
-                <option key={`edge-opt-${idx}`} value={`${edge.u}-${edge.v}`}>
-                  Edge: Node N{edge.u} → Node N{edge.v}
+              {availableEdges.length === 0 ? (
+                <option value="">
+                  {isNetworkLoading ? 'Loading network edges...' : 'No active network edges available'}
                 </option>
-              ))}
+              ) : (
+                availableEdges.map((edge, idx) => (
+                  <option key={`edge-opt-${idx}-${edge.u}-${edge.v}`} value={`${edge.u}__${edge.v}`}>
+                    Edge: Node {edge.u} → Node {edge.v}
+                  </option>
+                ))
+              )}
             </Select>
 
             <Select
@@ -157,7 +181,7 @@ export function IncidentRegistrationForm({
               value={incidentType}
               onChange={(e) => setIncidentType(e.target.value)}
               options={INCIDENT_TYPES}
-              disabled={isLoading}
+              disabled={isLoading || availableEdges.length === 0}
               required
             />
 
@@ -166,7 +190,7 @@ export function IncidentRegistrationForm({
               value={severity}
               onChange={(e) => setSeverity(e.target.value)}
               options={SEVERITIES}
-              disabled={isLoading}
+              disabled={isLoading || availableEdges.length === 0}
               required
             />
           </div>
@@ -178,7 +202,7 @@ export function IncidentRegistrationForm({
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Describe road blockage or accident details..."
-              disabled={isLoading}
+              disabled={isLoading || availableEdges.length === 0}
             />
 
             <div className="flex items-center gap-2 pb-0.5">
@@ -187,6 +211,7 @@ export function IncidentRegistrationForm({
                 variant="primary"
                 size="md"
                 isLoading={isLoading}
+                disabled={isLoading || availableEdges.length === 0}
                 leftIcon={<IncidentsIcon className="w-4 h-4" />}
                 className="font-semibold px-5 min-w-[190px]"
               >
@@ -201,8 +226,11 @@ export function IncidentRegistrationForm({
                   setDescription('')
                   setIncidentType('ACCIDENT')
                   setSeverity('MEDIUM')
+                  if (availableEdges.length > 0) {
+                    setUserSelectedEdgeKey(`${availableEdges[0].u}__${availableEdges[0].v}`)
+                  }
                 }}
-                disabled={isLoading}
+                disabled={isLoading || availableEdges.length === 0}
                 className="px-3"
                 title="Reset form values"
                 aria-label="Reset form values"

@@ -80,6 +80,7 @@ class AppState:
     route_manager: Optional[RouteManager] = None
     incident_layer: Optional[IncidentLayer] = None
     last_qpso_config: Optional[dict[str, Any]] = None
+    last_incident_response: Optional[Any] = None
 
     # ------------------------------------------------------------------
     # Invalidation helpers
@@ -95,6 +96,7 @@ class AppState:
         self.route_manager = None
         self.incident_layer = None
         self.last_qpso_config = None
+        self.last_incident_response = None
 
     def clear_from_fleet(self) -> None:
         """Reset all fields that depend on fleet/problem state."""
@@ -104,6 +106,7 @@ class AppState:
         self.route_manager = None
         self.incident_layer = None
         self.last_qpso_config = None
+        self.last_incident_response = None
 
     def clear_from_optimize(self) -> None:
         """Reset optimization and incident state."""
@@ -112,4 +115,5 @@ class AppState:
         self.route_manager = None
         self.incident_layer = None
         self.last_qpso_config = None
+        self.last_incident_response = None
 

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { PageHeader } from '../components/ui/PageHeader.jsx'
 import { Button } from '../components/ui/Button.jsx'
 import { NetworkConfigForm } from '../components/network/NetworkConfigForm.jsx'
@@ -6,7 +6,7 @@ import { NetworkStatsCards } from '../components/network/NetworkStatsCards.jsx'
 import { NetworkCanvas } from '../components/network/NetworkCanvas.jsx'
 import { NetworkLegend } from '../components/network/NetworkLegend.jsx'
 import { MapPinIcon, CheckCircleIcon } from '../components/common/Icons.jsx'
-import { createNetwork, loadOSMPresetNetwork } from '../api/qroute.js'
+import { createNetwork, loadOSMPresetNetwork, getNetwork } from '../api/qroute.js'
 
 const DEFAULT_PARAMS = {
   n_nodes: 20,
@@ -24,6 +24,24 @@ export function Network() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState(null)
   const [successInfo, setSuccessInfo] = useState(null)
+
+  useEffect(() => {
+    let isMounted = true
+    async function loadActiveNetwork() {
+      try {
+        const data = await getNetwork()
+        if (isMounted && data && data.nodes && data.nodes.length > 0) {
+          setNetworkData(data)
+        }
+      } catch {
+        // No network loaded yet
+      }
+    }
+    loadActiveNetwork()
+    return () => {
+      isMounted = false
+    }
+  }, [])
 
   const handleParamChange = (field, value) => {
     setParams((prev) => ({

@@ -42,6 +42,19 @@ function createCustomerIcon(customerId) {
 }
 
 /**
+ * Create custom HTML DivIcon for Road Intersection / Network nodes.
+ */
+function createNodeIcon(nodeId) {
+  return L.divIcon({
+    className: 'custom-node-icon',
+    html: `<div style="display:flex;align-items:center;justify-content:center;background:#334155;color:#94a3b8;font-weight:600;font-size:9px;border-radius:9999px;width:20px;height:20px;border:1.5px solid #64748b;box-shadow:0 1px 4px rgba(0,0,0,0.4);">#${nodeId}</div>`,
+    iconSize: [20, 20],
+    iconAnchor: [10, 10],
+    popupAnchor: [0, -10],
+  })
+}
+
+/**
  * Helper component to automatically fit map bounds when geographic data updates.
  */
 function MapBoundsController({ bounds, center }) {
@@ -64,17 +77,25 @@ export function OSMMapView({
   onSelectVehicle,
   className = '',
 }) {
-  // Compute bounding box containing all markers and routes
-  const { allBounds, defaultCenter, depots, customers, routes } = useMemo(() => {
+  // Compute bounding box containing all markers, routes, and network edges
+  const { allBounds, defaultCenter, depots, customers, routes, networkEdges, otherNodes } = useMemo(() => {
     const dList = geoData?.depots || []
     const cList = geoData?.customers || []
     const rList = geoData?.routes || []
+    const eList = geoData?.networkEdges || []
+    const nList = (geoData?.nodes || []).filter(
+      (n) => n.node_type !== 'depot' && n.node_type !== 'customer'
+    )
 
     const coords = []
     dList.forEach((d) => coords.push([d.latitude, d.longitude]))
     cList.forEach((c) => coords.push([c.latitude, c.longitude]))
+    nList.forEach((n) => coords.push([n.lat != null ? n.lat : n.y, n.lon != null ? n.lon : n.x]))
     rList.forEach((r) => {
       ;(r.coordinates || []).forEach((pt) => coords.push(pt))
+    })
+    eList.forEach((e) => {
+      ;(e.coordinates || []).forEach((pt) => coords.push(pt))
     })
 
     let center = [12.975, 77.598]
@@ -92,6 +113,8 @@ export function OSMMapView({
       depots: dList,
       customers: cList,
       routes: rList,
+      networkEdges: eList,
+      otherNodes: nList,
     }
   }, [geoData])
 
@@ -114,7 +137,44 @@ export function OSMMapView({
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
 
-          {/* 2. Route Polylines */}
+          {/* 2. Road Network Edges */}
+          {networkEdges.map((edge, idx) => {
+            const coords = edge.coordinates || []
+            if (coords.length < 2) return null
+            const isClosed = edge.road_status === 'closed'
+
+            return (
+              <Polyline
+                key={`net-edge-${idx}`}
+                positions={coords}
+                pathOptions={{
+                  color: isClosed
+                    ? '#f43f5e'
+                    : edge.congestion_factor > 1.2
+                    ? '#f59e0b'
+                    : '#64748b',
+                  weight: isClosed ? 3.5 : 2.5,
+                  opacity: isClosed ? 0.95 : 0.7,
+                  dashArray: isClosed ? '5, 4' : undefined,
+                }}
+              >
+                <Popup>
+                  <div className="text-xs text-slate-800 space-y-1 font-sans">
+                    <div className="font-bold text-slate-900 border-b border-slate-200 pb-1">
+                      Road Segment: Node #{edge.u} → Node #{edge.v}
+                    </div>
+                    <div>Distance: {edge.distance != null ? Number(edge.distance).toFixed(2) : '0.00'} km</div>
+                    <div>Status: {isClosed ? 'CLOSED (Full Blockage)' : 'OPEN'}</div>
+                    {edge.congestion_factor > 1.0 && (
+                      <div>Congestion: ×{Number(edge.congestion_factor).toFixed(2)} delay</div>
+                    )}
+                  </div>
+                </Popup>
+              </Polyline>
+            )
+          })}
+
+          {/* 3. Route Polylines */}
           {routes.map((route, idx) => {
             const coords = route.coordinates || []
             if (coords.length < 2) return null
@@ -154,7 +214,7 @@ export function OSMMapView({
             )
           })}
 
-          {/* 3. Depot Markers */}
+          {/* 4. Depot Markers */}
           {depots.map((depot) => (
             <Marker
               key={`depot-marker-${depot.id}`}
@@ -175,7 +235,7 @@ export function OSMMapView({
             </Marker>
           ))}
 
-          {/* 4. Customer Markers */}
+          {/* 5. Customer Markers */}
           {customers.map((cust) => (
             <Marker
               key={`customer-marker-${cust.id}`}
@@ -196,24 +256,67 @@ export function OSMMapView({
               </Popup>
             </Marker>
           ))}
+
+          {/* 6. Intersection / Other Node Markers */}
+          {otherNodes.map((node) => {
+            const lat = node.lat != null ? node.lat : node.y
+            const lon = node.lon != null ? node.lon : node.x
+            if (lat == null || lon == null) return null
+            return (
+              <Marker
+                key={`node-marker-${node.id}`}
+                position={[lat, lon]}
+                icon={createNodeIcon(node.id)}
+              >
+                <Popup>
+                  <div className="text-xs text-slate-800 space-y-1 font-sans">
+                    <div className="font-bold text-slate-900 border-b border-slate-200 pb-1">
+                      Road Node #{node.id} ({node.node_type || 'intersection'})
+                    </div>
+                    <div className="font-mono text-[11px] text-slate-600">
+                      {Number(lat).toFixed(5)}°, {Number(lon).toFixed(5)}°
+                    </div>
+                  </div>
+                </Popup>
+              </Marker>
+            )
+          })}
         </MapContainer>
       </div>
 
-      {/* 5. Bottom Map Legend */}
+      {/* 7. Bottom Map Legend */}
       <div className="px-4 py-2 bg-slate-950/95 border-t border-slate-800/90 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-400 z-10">
         <div className="flex items-center gap-4">
-          <span className="inline-flex items-center gap-1.5">
-            <span className="w-3 h-1 bg-sky-400 rounded-full" /> Selected Vehicle
-          </span>
-          <span className="inline-flex items-center gap-1.5">
-            <span className="w-3 h-1 bg-indigo-400 rounded-full" /> Other Routes
-          </span>
-          <span className="inline-flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-amber-400" /> Depot ({depots.length})
-          </span>
-          <span className="inline-flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400" /> Customer ({customers.length})
-          </span>
+          {routes.length > 0 && (
+            <>
+              <span className="inline-flex items-center gap-1.5">
+                <span className="w-3 h-1 bg-sky-400 rounded-full" /> Selected Vehicle
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <span className="w-3 h-1 bg-indigo-400 rounded-full" /> Other Routes
+              </span>
+            </>
+          )}
+          {networkEdges.length > 0 && (
+            <span className="inline-flex items-center gap-1.5">
+              <span className="w-3 h-0.5 bg-slate-400" /> Road Segment ({networkEdges.length})
+            </span>
+          )}
+          {depots.length > 0 && (
+            <span className="inline-flex items-center gap-1.5">
+              <span className="w-2.5 h-2.5 rounded-full bg-amber-400" /> Depot ({depots.length})
+            </span>
+          )}
+          {customers.length > 0 && (
+            <span className="inline-flex items-center gap-1.5">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400" /> Customer ({customers.length})
+            </span>
+          )}
+          {otherNodes.length > 0 && (
+            <span className="inline-flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-slate-500" /> Intersection ({otherNodes.length})
+            </span>
+          )}
         </div>
 
         <div className="text-[11px] text-slate-500 font-mono">

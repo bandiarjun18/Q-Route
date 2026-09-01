@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { PageHeader } from '../components/ui/PageHeader.jsx'
 import { FleetSummaryCards } from '../components/fleet/FleetSummaryCards.jsx'
 import { FleetConfigCard } from '../components/fleet/FleetConfigCard.jsx'
@@ -6,27 +6,85 @@ import { VehiclesTableCard } from '../components/fleet/VehiclesTableCard.jsx'
 import { CustomerOrdersTableCard } from '../components/fleet/CustomerOrdersTableCard.jsx'
 import { AddVehicleModal } from '../components/fleet/AddVehicleModal.jsx'
 import { AddCustomerModal } from '../components/fleet/AddCustomerModal.jsx'
-import { configureFleet } from '../api/qroute.js'
+import { configureFleet, getNetwork, getCurrentFleet } from '../api/qroute.js'
 
-const INITIAL_VEHICLES = [
+const SYNTHETIC_VEHICLES = [
   { vehicle_id: 0, capacity: 50.0, depot_node: 0 },
   { vehicle_id: 1, capacity: 50.0, depot_node: 0 },
 ]
 
-const INITIAL_CUSTOMERS = [
+const SYNTHETIC_CUSTOMERS = [
   { customer_id: 0, location_node: 3, demand: 8.5 },
   { customer_id: 1, location_node: 7, demand: 6.0 },
   { customer_id: 2, location_node: 11, demand: 4.2 },
 ]
 
+const OSM_VEHICLES = [
+  { vehicle_id: 0, capacity: 50.0, depot_node: 1001 },
+  { vehicle_id: 1, capacity: 45.0, depot_node: 1001 },
+]
+
+const OSM_CUSTOMERS = [
+  { customer_id: 0, location_node: 1002, demand: 12.0 },
+  { customer_id: 1, location_node: 1003, demand: 10.0 },
+  { customer_id: 2, location_node: 1004, demand: 14.0 },
+  { customer_id: 3, location_node: 1005, demand: 8.0 },
+  { customer_id: 4, location_node: 1006, demand: 11.0 },
+  { customer_id: 5, location_node: 1007, demand: 9.0 },
+]
+
 export function Fleet() {
-  const [vehicles, setVehicles] = useState(INITIAL_VEHICLES)
-  const [customers, setCustomers] = useState(INITIAL_CUSTOMERS)
+  const [vehicles, setVehicles] = useState(SYNTHETIC_VEHICLES)
+  const [customers, setCustomers] = useState(SYNTHETIC_CUSTOMERS)
+  const [isGeographic, setIsGeographic] = useState(false)
   const [isAddVehicleOpen, setIsAddVehicleOpen] = useState(false)
   const [isAddCustomerOpen, setIsAddCustomerOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState(null)
   const [successMessage, setSuccessMessage] = useState(null)
+
+  useEffect(() => {
+    let isMounted = true
+
+    async function initFleet() {
+      try {
+        const net = await getNetwork()
+        if (!isMounted || !net?.nodes?.length) return
+
+        const isGeo = net.nodes.some(
+          (n) => n.lat != null && n.lon != null
+        )
+        setIsGeographic(isGeo)
+
+        try {
+          const activeFleet = await getCurrentFleet()
+          if (!isMounted) return
+          if (activeFleet?.vehicles?.length > 0) {
+            setVehicles(activeFleet.vehicles)
+            setCustomers(activeFleet.customers)
+            return
+          }
+        } catch {
+          // No active fleet configured yet in backend
+        }
+
+        if (isGeo) {
+          setVehicles(OSM_VEHICLES)
+          setCustomers(OSM_CUSTOMERS)
+        } else {
+          setVehicles(SYNTHETIC_VEHICLES)
+          setCustomers(SYNTHETIC_CUSTOMERS)
+        }
+      } catch {
+        // Backend not running or no network loaded yet
+      }
+    }
+
+    initFleet()
+    return () => {
+      isMounted = false
+    }
+  }, [])
 
   // Handlers for modifying fleet lists
   const handleAddVehicle = (newVeh) => {
@@ -77,13 +135,13 @@ export function Fleet() {
     try {
       const payload = {
         vehicles: vehicles.map((v) => ({
-          vehicle_id: Number(v.vehicle_id),
+          vehicle_id: isNaN(Number(v.vehicle_id)) ? String(v.vehicle_id) : Number(v.vehicle_id),
           capacity: Number(v.capacity),
-          depot_node: Number(v.depot_node),
+          depot_node: isNaN(Number(v.depot_node)) ? String(v.depot_node) : Number(v.depot_node),
         })),
         customers: customers.map((c) => ({
-          customer_id: Number(c.customer_id),
-          location_node: Number(c.location_node),
+          customer_id: isNaN(Number(c.customer_id)) ? String(c.customer_id) : Number(c.customer_id),
+          location_node: isNaN(Number(c.location_node)) ? String(c.location_node) : Number(c.location_node),
           demand: Number(c.demand),
         })),
       }
@@ -125,6 +183,7 @@ export function Fleet() {
         successMessage={successMessage}
         vehiclesCount={vehicles.length}
         customersCount={customers.length}
+        isGeographic={isGeographic}
       />
 
       {/* 4. Vehicles Table Card */}
@@ -146,7 +205,8 @@ export function Fleet() {
         isOpen={isAddVehicleOpen}
         onClose={() => setIsAddVehicleOpen(false)}
         onAdd={handleAddVehicle}
-        defaultNextId={vehicles.length > 0 ? Math.max(...vehicles.map((v) => v.vehicle_id)) + 1 : 0}
+        defaultNextId={vehicles.length > 0 ? Math.max(...vehicles.map((v) => (isNaN(Number(v.vehicle_id)) ? 0 : Number(v.vehicle_id)))) + 1 : 0}
+        defaultDepotNode={isGeographic ? 1001 : 0}
       />
 
       {/* Add Customer Modal */}
@@ -154,7 +214,8 @@ export function Fleet() {
         isOpen={isAddCustomerOpen}
         onClose={() => setIsAddCustomerOpen(false)}
         onAdd={handleAddCustomer}
-        defaultNextId={customers.length > 0 ? Math.max(...customers.map((c) => c.customer_id)) + 1 : 0}
+        defaultNextId={customers.length > 0 ? Math.max(...customers.map((c) => (isNaN(Number(c.customer_id)) ? 0 : Number(c.customer_id)))) + 1 : 0}
+        defaultLocationNode={isGeographic ? 1002 : 1}
       />
     </div>
   )

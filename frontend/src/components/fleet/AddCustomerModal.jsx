@@ -3,9 +3,9 @@ import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '../ui/Card
 import { Button } from '../ui/Button.jsx'
 import { Input } from '../ui/Input.jsx'
 
-export function AddCustomerModal({ isOpen, onClose, onAdd, defaultNextId = 0 }) {
+export function AddCustomerModal({ isOpen, onClose, onAdd, defaultNextId = 0, defaultLocationNode = '1' }) {
   const [customerId, setCustomerId] = useState(defaultNextId)
-  const [locationNode, setLocationNode] = useState('1')
+  const [locationNode, setLocationNode] = useState(String(defaultLocationNode))
   const [demand, setDemand] = useState('10.0')
   const [error, setError] = useState(null)
 
@@ -14,21 +14,21 @@ export function AddCustomerModal({ isOpen, onClose, onAdd, defaultNextId = 0 }) 
   const handleSubmit = (e) => {
     e.preventDefault()
     const demandNum = Number(demand)
-    const nodeNum = Number(locationNode)
+    const locTrimmed = String(locationNode).trim()
     const idNum = Number(customerId)
 
     if (isNaN(demandNum) || demandNum < 0) {
       setError('Demand must be a non-negative number (≥ 0).')
       return
     }
-    if (isNaN(nodeNum) || nodeNum < 0) {
-      setError('Location Node must be a valid non-negative integer.')
+    if (!locTrimmed) {
+      setError('Location Node ID cannot be empty.')
       return
     }
 
     onAdd({
-      customer_id: isNaN(idNum) ? defaultNextId : idNum,
-      location_node: nodeNum,
+      customer_id: isNaN(idNum) ? customerId : idNum,
+      location_node: isNaN(Number(locTrimmed)) ? locTrimmed : Number(locTrimmed),
       demand: demandNum,
     })
     onClose()

@@ -129,7 +129,7 @@ export function OptimizationConfigForm({
               <Input
                 label="Time Budget (Seconds)"
                 type="number"
-                step="0.5"
+                step="0.1"
                 min="0.1"
                 value={params.time_budget_seconds ?? ''}
                 onChange={(e) => onChangeParam('time_budget_seconds', e.target.value)}
@@ -160,7 +160,7 @@ export function OptimizationConfigForm({
                 label="Travel Time Weight (w_time)"
                 type="number"
                 step="0.1"
-                min="0.01"
+                min="0.1"
                 value={params.w_time}
                 onChange={(e) => onChangeParam('w_time', e.target.value)}
                 helperText="Primary travel duration cost (> 0)"
@@ -172,7 +172,7 @@ export function OptimizationConfigForm({
                 label="Distance Weight (w_distance)"
                 type="number"
                 step="0.1"
-                min="0.01"
+                min="0.1"
                 value={params.w_distance}
                 onChange={(e) => onChangeParam('w_distance', e.target.value)}
                 helperText="Total route length cost (> 0)"

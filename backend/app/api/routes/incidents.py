@@ -30,7 +30,7 @@ from sqlalchemy.orm import Session
 from app.api.dependencies import require_optimization
 from app.api.models import IncidentRequest, IncidentResponse, RouteOut
 from app.api.state import AppState
-from app.db.crud import get_active_network, save_incident, save_optimization_run
+from app.db.crud import get_active_network, get_incidents_for_network, save_incident, save_optimization_run
 from app.db.session import get_db
 from app.graph.model import TransportGraph
 from app.incidents.model import Incident, IncidentLayer, IncidentSeverity, IncidentType
@@ -120,13 +120,18 @@ def register_incident(
     # ── 1. Validate edge ─────────────────────────────────────────────────
     u, v = body.edge_u, body.edge_v
     if not graph.graph.has_edge(u, v):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=(
-                f"Edge ({u!r} → {v!r}) does not exist in the current network. "
-                f"Incidents can only be placed on existing directed edges."
-            ),
-        )
+        if graph.graph.has_edge(str(u), str(v)):
+            u, v = str(u), str(v)
+        elif str(u).isdigit() and str(v).isdigit() and graph.graph.has_edge(int(u), int(v)):
+            u, v = int(u), int(v)
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=(
+                    f"Edge ({u!r} → {v!r}) does not exist in the current network. "
+                    f"Incidents can only be placed on existing directed edges."
+                ),
+            )
 
     # ── 2. Parse enum strings (already validated by Pydantic field_validator) ──
     inc_type = _INCIDENT_TYPE_MAP[body.incident_type]
@@ -217,7 +222,7 @@ def register_incident(
     except Exception as exc:
         logger.warning("Failed to persist incident to PostgreSQL: %s", exc)
 
-    return IncidentResponse(
+    resp = IncidentResponse(
         edge_u=u,
         edge_v=v,
         incident_type=inc_type.name,
@@ -227,4 +232,66 @@ def register_incident(
         n_affected=len(reroute_res.affected_vehicle_ids),
         updated_routes=updated_routes_out,
         unaffected_route_count=unaffected_count,
+    )
+    state.last_incident_response = resp
+    return resp
+
+
+@router.get(
+    "",
+    response_model=IncidentResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Get current incident and rerouting state",
+    description="Returns the latest registered road incident and affected route updates.",
+)
+@router.get(
+    "/current",
+    response_model=IncidentResponse,
+    status_code=status.HTTP_200_OK,
+    include_in_schema=False,
+)
+def get_current_incident(
+    state: AppState = Depends(require_optimization),
+    db: Session = Depends(get_db),
+) -> IncidentResponse:
+    """Return the most recent road incident and rerouted routes."""
+    if state.last_incident_response is not None:
+        return state.last_incident_response
+
+    # Fallback to database if available
+    net_id = state.network_db_id
+    if not net_id:
+        active_net = get_active_network(db)
+        if active_net:
+            net_id = active_net.id
+    if net_id:
+        db_incidents = get_incidents_for_network(db, net_id)
+        if db_incidents and state.route_manager:
+            last_inc = db_incidents[-1]
+            active_routes = state.route_manager.list_active()
+            affected_routes = [
+                ar
+                for ar in active_routes
+                if (ar.status.value if hasattr(ar.status, "value") else str(ar.status)).upper() == "AFFECTED"
+            ]
+            aff_ids = [ar.vehicle_id for ar in affected_routes]
+            updated_routes_out = [_build_route_out(ar) for ar in affected_routes]
+            unaffected_count = len(active_routes) - len(affected_routes)
+            resp = IncidentResponse(
+                edge_u=last_inc.edge_u,
+                edge_v=last_inc.edge_v,
+                incident_type=last_inc.incident_type,
+                severity=last_inc.severity,
+                is_closure=last_inc.is_closure,
+                affected_vehicle_ids=aff_ids,
+                n_affected=len(aff_ids),
+                updated_routes=updated_routes_out,
+                unaffected_route_count=unaffected_count,
+            )
+            state.last_incident_response = resp
+            return resp
+
+    raise HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND,
+        detail="No road incidents currently registered.",
     )
