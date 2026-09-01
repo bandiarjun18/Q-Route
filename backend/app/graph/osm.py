@@ -522,13 +522,22 @@ def _build_network_dict_from_elements(
             if way_name:
                 edge_base_attrs["name"] = way_name
 
+            geom_forward = [
+                [u_node.lat, u_node.lon],
+                [v_node.lat, v_node.lon],
+            ]
+            geom_reverse = [
+                [v_node.lat, v_node.lon],
+                [u_node.lat, u_node.lon],
+            ]
+
             if direction in ("forward", "bidirectional"):
-                edges.append({"u": u_id, "v": v_id, **edge_base_attrs})
+                edges.append({"u": u_id, "v": v_id, **edge_base_attrs, "geometry": geom_forward})
                 used_node_ids.add(u_id)
                 used_node_ids.add(v_id)
 
             if direction in ("reverse", "bidirectional"):
-                edges.append({"u": v_id, "v": u_id, **edge_base_attrs})
+                edges.append({"u": v_id, "v": u_id, **edge_base_attrs, "geometry": geom_reverse})
                 used_node_ids.add(u_id)
                 used_node_ids.add(v_id)
 
