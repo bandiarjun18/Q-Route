@@ -145,8 +145,8 @@ export function OSMMapView({
                     <div className="font-bold text-slate-900 border-b border-slate-200 pb-1">
                       Vehicle #{route.vehicle_id}
                     </div>
-                    <div>Distance: {route.total_distance?.toFixed(2)} km</div>
-                    <div>Travel Time: {route.total_travel_time?.toFixed(1)} mins</div>
+                    <div>Distance: {route.total_distance != null ? Number(route.total_distance).toFixed(2) : '0.00'} km</div>
+                    <div>Travel Time: {route.total_travel_time != null ? Number(route.total_travel_time).toFixed(1) : '0.0'} mins</div>
                     <div>Assigned Stops: {route.visit_order?.length || 0}</div>
                   </div>
                 </Popup>
@@ -168,7 +168,7 @@ export function OSMMapView({
                   </div>
                   <div>Primary Fleet Dispatch Center</div>
                   <div className="font-mono text-[11px] text-slate-600">
-                    {depot.latitude.toFixed(5)}°, {depot.longitude.toFixed(5)}°
+                    {Number(depot.latitude).toFixed(5)}°, {Number(depot.longitude).toFixed(5)}°
                   </div>
                 </div>
               </Popup>
@@ -190,7 +190,7 @@ export function OSMMapView({
                   <div>Delivery Demand: {cust.demand} units</div>
                   <div>Location Node: #{cust.location_node}</div>
                   <div className="font-mono text-[11px] text-slate-600">
-                    {cust.latitude.toFixed(5)}°, {cust.longitude.toFixed(5)}°
+                    {Number(cust.latitude).toFixed(5)}°, {Number(cust.longitude).toFixed(5)}°
                   </div>
                 </div>
               </Popup>

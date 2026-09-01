@@ -39,10 +39,17 @@ export function LiveRoutes() {
         }
       } else {
         const err = routesRes.reason
-        if (err?.message?.includes('409') || err?.message?.toLowerCase().includes('not configured')) {
+        const errMsg = err?.message || ''
+        if (
+          errMsg.includes('409') ||
+          errMsg.toLowerCase().includes('not run') ||
+          errMsg.toLowerCase().includes('not configured') ||
+          errMsg.toLowerCase().includes('no active')
+        ) {
           setRoutesData({ total_active: 0, routes: [] })
+          setSelectedVehicleId(null)
         } else {
-          setError(err?.message || 'Failed to retrieve active routes from backend API.')
+          setError(errMsg || 'Failed to retrieve active routes from backend API.')
         }
       }
 
@@ -73,17 +80,28 @@ export function LiveRoutes() {
             setRoutesData(data)
             if (data?.routes?.length > 0) {
               setSelectedVehicleId(data.routes[0].vehicle_id)
+            } else {
+              setSelectedVehicleId(null)
             }
           } else {
             const err = routesRes.reason
-            if (err?.message?.includes('409') || err?.message?.toLowerCase().includes('not configured')) {
+            const errMsg = err?.message || ''
+            if (
+              errMsg.includes('409') ||
+              errMsg.toLowerCase().includes('not run') ||
+              errMsg.toLowerCase().includes('not configured') ||
+              errMsg.toLowerCase().includes('no active')
+            ) {
               setRoutesData({ total_active: 0, routes: [] })
+              setSelectedVehicleId(null)
             } else {
-              setError(err?.message || 'Failed to retrieve active routes from backend API.')
+              setError(errMsg || 'Failed to retrieve active routes from backend API.')
             }
           }
           if (geoRes.status === 'fulfilled') {
             setGeoData(geoRes.value)
+          } else {
+            setGeoData(null)
           }
         }
       } catch (err) {
